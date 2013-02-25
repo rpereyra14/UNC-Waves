@@ -43,7 +43,7 @@ We will build an interface between a waveform generator and streaming digital ou
 \begin{itemize}
 \item Resample to sync uniform times
 \begin{itemize}
-  \item Wave likely provided as 3-d matrix (x, y, t) with value of excitement at that time and place.
+	\item Wave likely provided as 3-d matrix (x, y, t) with value of excitement at that time and place.
 	\item Wave data provided by mathematicians may need to be interpolated in order to produce a wave that works with the hardware. (Example: Mathematician gives wave at 10ms or 200ms time intervals, and we need 100ms intervals).
 	\item Possible warnings generated when interpolation differs over a threshold from the original wave?
 
