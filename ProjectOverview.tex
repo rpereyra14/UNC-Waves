@@ -1,0 +1,73 @@
+\documentclass[12pt]{article}
+
+\usepackage[margin=1in]{geometry} 
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage[pdftex]{graphicx}
+
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+
+\newenvironment{theorem}[2][Theorem]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{lemma}[2][Lemma]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{exercise}[2][Exercise]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{problem}[2][Problem]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{question}[2][Question]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{corollary}[2][Corollary]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+
+\begin{document}
+
+% --------------------------------------------------------------
+%                         Start here
+% --------------------------------------------------------------
+
+\title{Making Waves}%replace X with the appropriate number
+\author{Chief Project Manager: Alex French \\ 
+Chief Editor: Steven Love\\
+Chief Architect: Renato Pereyra\\
+Chief Client Manager: Christopher Mullins\\ %replace with your name
+COMP523 Software Development - Stotts} %if necessary, replace with your course title
+
+\maketitle
+
+\section{Concept}
+
+We will build an interface between a waveform generator and streaming digital outputs from multiple sound cards. Up to sixteen parallel channels are needed to maintain synchronization across all channels.
+
+\subsubsection{Expected Project Parameters}
+\begin{itemize}
+\item Resample to sync uniform times
+\begin{itemize}
+  \item Wave likely provided as 3-d matrix (x, y, t) with value of excitement at that time and place.
+	\item Wave data provided by mathematicians may need to be interpolated in order to produce a wave that works with the hardware. (Example: Mathematician gives wave at 10ms or 200ms time intervals, and we need 100ms intervals).
+	\item Possible warnings generated when interpolation differs over a threshold from the original wave?
+
+\end{itemize}
+\item Package in data record with metadata
+\item (Optional) Store resultant data in a file
+\item Translate to LewOS Macro
+\item LewOS Simulator
+\item Physics Simulator
+\item Graphic result display
+\end{itemize}
+
+\subsubsection{Possible Extensions}
+
+\begin{itemize}
+\item MATLAB plugin
+\begin{itemize}
+	\item Mathematicians may use MATLAB to generate a  waveform and then provide corresponding matrix to our software. An optional extension might include a MATLAB plugin to expedite this process.
+\end{itemize}
+\end{itemize}
+
+\begin{center}
+\includegraphics[scale = 0.5]{UncWaveConcept.png}
+\end{center}
+
+NB. We will have a revised version of this graphic soon.
+\end{document}
