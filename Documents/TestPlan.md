@@ -6,19 +6,19 @@
 
 * Descriptions of tools used
 
-    *There are few regression testing tools for MATLAB, so we will have to test this part of the code body
+    >"There are few regression testing tools for MATLAB, so we will have to test this part of the code body
 	manually, by passing in inputs and checking for known outputs. This should be sufficient, since our
 	use of MATLAB is limited to small tasks which take advantage of built-in MATLAB functions, which are
-	presumably well-tested.
+	presumably well-tested."
 
-    *LewOS is configured with CMake, so we may use CTest and CDash for regression testing of the C++ part
+    >"LewOS is configured with CMake, so we may use CTest and CDash for regression testing of the C++ part
 	of the code body. We will also test manually using the LewOS simulator, passing in inputs checking for
-	known outputs.
+	known outputs."
 
-    *CTest: Testing tool distributed as part of CMake. Can automate testing and other functions,
+    >"CTest: Testing tool distributed as part of CMake. Can automate testing and other functions,
 	and submit results to a dashboard system, here, CDash. [http://cmake.org/Wiki/CMake/
 	Testing_With_CTest]
-	CDash: [http://www.cdash.org/]
+	CDash: [http://www.cdash.org/]"
 
 * Descriptions of Types of End Users
 
