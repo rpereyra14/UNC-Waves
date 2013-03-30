@@ -22,7 +22,7 @@ function varargout = waveUI(varargin)
 
 % Edit the above text to modify the response to help waveUI
 
-% Last Modified by GUIDE v2.5 23-Mar-2013 22:35:27
+% Last Modified by GUIDE v2.5 30-Mar-2013 17:32:14
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -236,3 +236,45 @@ plot(wave(:,4),'r')
 plot(wave(:,8),'g')
 plot(wave(:,12),'b')
 plot(wave(:,16),'m')
+
+
+% --- Executes on button press in pushbutton4.
+function pushbutton4_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton4 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+[saveOutName, pathToSaveOut] = uiputfile('*.mhd', 'Select a Wave Header file');
+set(handles.edit6, 'string', [pathToSaveOut saveOutName]);
+
+
+function edit6_Callback(hObject, eventdata, handles)
+% hObject    handle to edit6 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit6 as text
+%        str2double(get(hObject,'String')) returns contents of edit6 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit6_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit6 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in pushbutton5.
+function pushbutton5_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton5 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+%fprintf(get(handles.edit6, 'String'))
+textToWrite = containers.Map({'Author','ErrorBound','InterpolationMethod','WaveFile'},{get(handles.edit2,'String'), get(handles.edit3,'String'), get(handles.edit4,'String'), get(handles.edit5,'String')});
+fileToWrite = get(handles.edit6,'String');
+writeWaveMetaData(fileToWrite, textToWrite);
