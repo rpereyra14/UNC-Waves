@@ -22,7 +22,9 @@ function varargout = waveUI(varargin)
 
 % Edit the above text to modify the response to help waveUI
 
-% Last Modified by GUIDE v2.5 30-Mar-2013 17:32:14
+
+% Last Modified by GUIDE v2.5 31-Mar-2013 21:03:06
+
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -208,34 +210,30 @@ function pushbutton3_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-axes(handles.axes1)
-wave = csvread(get(handles.edit5, 'String'));
-hold on
-plot(wave(:,1),'r')
-plot(wave(:,5),'g')
-plot(wave(:,9),'b')
-plot(wave(:, 13),'m')
-hold off
-axes(handles.axes2)
-hold on
-plot(wave(:,2),'r')
-plot(wave(:, 6),'g')
-plot(wave(:, 10),'b')
-plot(wave(:, 14),'m')
-hold off
-axes(handles.axes3)
-hold on
-plot(wave(:,3),'r')
-plot(wave(:,7),'g')
-plot(wave(:,11),'b')
-plot(wave(:,15),'m')
-hold off
+
+%Generate some wave
+Z = generate_wave();
+  
+%Interpolate it down to 4x4 (what our exciters can actually do)
+interpolated = interpolateWave(Z,'linear',[4 4]);
+F = render(Z,interpolated,'embed');
+
 axes(handles.axes4)
-hold on
-plot(wave(:,4),'r')
-plot(wave(:,8),'g')
-plot(wave(:,12),'b')
-plot(wave(:,16),'m')
+
+%# prepare GUI
+%p = get(0,'DefaultFigurePosition');
+%hFig = g('Menubar','none', 'Resize','off', ...
+ %   'Position',[p(1:2) sz(2) sz(1)]);
+
+%# play movie
+movv = F;
+movie(gca, movv, 999); 
+% 
+% plot(wave(:,4),'r')
+% plot(wave(:,8),'g')
+% plot(wave(:,12),'b')
+% plot(wave(:,16),'m')
+
 
 
 % --- Executes on button press in pushbutton4.
@@ -278,3 +276,12 @@ function pushbutton5_Callback(hObject, eventdata, handles)
 textToWrite = containers.Map({'Author','ErrorBound','InterpolationMethod','WaveFile'},{get(handles.edit2,'String'), get(handles.edit3,'String'), get(handles.edit4,'String'), get(handles.edit5,'String')});
 fileToWrite = get(handles.edit6,'String');
 writeWaveMetaData(fileToWrite, textToWrite);
+
+
+% --- If Enable == 'on', executes on mouse press in 5 pixel border.
+% --- Otherwise, executes on mouse press in 5 pixel border or over pushbutton3.
+function pushbutton3_ButtonDownFcn(hObject, eventdata, handles)
+% hObject    handle to pushbutton3 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
