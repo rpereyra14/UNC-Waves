@@ -1,3 +1,5 @@
+//COMP 523 UNC Waves
+
 #include <LEWOS_sim.h>
 #include <stdio.h>
 #include <string.h>
