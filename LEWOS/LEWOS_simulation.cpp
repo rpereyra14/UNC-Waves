@@ -37,7 +37,8 @@
 #define BAD_CHANNEL_ID 	6			//return code for bad channelID calculated from input file
 #define INIT_MACRO_ID	100			//arbitrary macroID, the ID is inconsequential as long as below 256
 #define EVENT_ID 		100			//eventID must match the channelID in Lst_read_event
-#define TIME_OFFSET		10 			//the time offset is set to 10 to ensure enough time for reading of instructions
+#define TIME_OFFSET		10 			//the time offset is set long enough to ensure enough time for reading of instructions
+#define DEADLINE 		20000		//the deadline for each local domain instruction set
 
 using std::ifstream;				//file reading handle
 using std::string;					//string
@@ -184,12 +185,26 @@ void prepMacro(){
 		//get a handle for the ith local domain
 		d = new LEWOS_api_domain(sim, i);
 
-		//give the instruction a very long time to act (20 seconds), simply to ensure all instructions take place in simulation
+		//count the number of instructions submitted for a domain.
+		int count_intr = 0;
+		for( int j = 0; j < local_domain_width * local_domain_height; j++ )
+			count_intr += get_num_instructions(i, j);
+
+		//If zero instructions, skip domain.
+		if( count_intr == 0 )
+			continue;
+
+		//give the instruction a very long time to act, simply to ensure all instructions take place in simulation
 		//will need to be tweaked in live hardware
-		d -> instruct_set_deadline( LEWOS_api_time(0, 20000) );
+		d -> instruct_set_deadline( LEWOS_api_time(0, DEADLINE) );
 
 		//build a separate macro for each channel in each local domain
 		for( int j = 0; j < local_domain_width * local_domain_height; j++ ){
+	
+			//if a channel has zero instructions, skip that channel
+			int num_instr = get_num_instructions(i, j);
+			if( num_instr == 0 )
+				continue;
 
 			//define macro
 			d -> instruct_define_macro( LEWOS_xlate_timebase_NOW, macroID, get_num_instructions(i, j), TIME_OFFSET );
@@ -337,5 +352,3 @@ void parsefile( const string& filename ){
 		actuatorRecords.push_back( new Record(domainID, channelID, t, actuatorValue) );
 
 	}
-
-}
