@@ -28,7 +28,7 @@ function[F] =render(orig,interpolated,method)
     fig = figure('Renderer','zbuffer');
    
     if strcmp(method,'embed')
-        set(fig, 'Position', [100 100 500 200]);
+        set(fig, 'Position', [200 200 800 600]);
     else
          set(fig, 'Position', [100 100 800 600]);
     end
