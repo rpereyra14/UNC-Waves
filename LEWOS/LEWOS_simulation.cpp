@@ -280,13 +280,14 @@ void parsefile( const string& filename ){
 
 	int line = 0;
 
+	cout << "READING FILE" << endl;
+
 	//parse input file
-	while( !infile.eof() ){
+	while( getline( infile, temp, ' ' ) ){
 
 		line++;
 
 		//read the input z_location
-		getline( infile, temp, ' ' );
 		z_location = atoi(temp.c_str());
 
 		//read the input y_location
@@ -329,6 +330,9 @@ void parsefile( const string& filename ){
 
 		//get actuator value
 		actuatorValue = (int)floor(val * MAX_VOLTAGE);
+
+		cout << "line: " << line << " -domainID: " << domainID << " -channelID: " << channelID 
+									<< " -time: " << t << " -value: " << actuatorValue << endl;
 
 		actuatorRecords.push_back( new Record(domainID, channelID, t, actuatorValue) );
 
