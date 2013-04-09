@@ -23,17 +23,21 @@
 #include "FluidTankSpecs.h"			//hardware specifications of the fluid tank
 #include "Record.h"					//holds information about an excitation record (i.e. line in input file)
 #include <stdlib.h>					//for atoi and atof
+#include <math.h>					//for floor
 #include <iostream>					//for I/O
-#include <ifstream>					//for reading input file
+#include <fstream>					//for reading input file
 #include <string>					//for handling of input file
 #include <algorithm>				//for sorting records by domainID/timeOffset
 
-#define VERBOSITY 4					//verbosity value for LEWOS simulation (ranges from 0 to 4, 4 being most verbose)
-#define MAX_VOLTAGE 65536			//max LEWOS analog value
-#define MISUSAGE 1					//return code for misusage (i.e. unspecified input file)
-#define BAD_FILE 4					//return code for bad input file (i.e. input file unable to be opened)
-#define BAD_DOMAIN_ID 5 			//return code for bad domainID calculated from input file
-#define BAD_CHANNEL_ID 6			//return code for bad channelID calculated from input file
+#define VERBOSITY 		4			//verbosity value for LEWOS simulation (ranges from 0 to 4, 4 being most verbose)
+#define MAX_VOLTAGE		65536		//max LEWOS analog value
+#define MISUSAGE 		1			//return code for misusage (i.e. unspecified input file)
+#define BAD_FILE 		4			//return code for bad input file (i.e. input file unable to be opened)
+#define BAD_DOMAIN_ID 	5 			//return code for bad domainID calculated from input file
+#define BAD_CHANNEL_ID 	6			//return code for bad channelID calculated from input file
+#define INIT_MACRO_ID	100			//arbitrary macroID, the ID is inconsequential as long as below 256
+#define EVENT_ID 		100			//eventID must match the channelID in Lst_read_event
+#define TIME_OFFSET		10 			//the time offset is set to 10 to ensure enough time for reading of instructions
 
 using std::ifstream;				//file reading handle
 using std::string;					//string
@@ -47,9 +51,9 @@ using std::sort;					//sorting routine
 vector<Record *> actuatorRecords;	//the z_locations excited
 
 void parsefile( const string& filename );
-void simulateMacro();
+void prepMacro();
 
-void main( int argc, char* argv[] ){
+int main( int argc, char* argv[] ){
 
 	//verify an input file was specified
 	if( argc != 2 ){
@@ -57,23 +61,79 @@ void main( int argc, char* argv[] ){
 		exit( MISUSAGE );
 	}
 
-	parsefile( *argv[1] );
-	simulateMacro();
+	parsefile( argv[1] );
+	prepMacro();
+
+	return 0;
 
 }
 
-void simulateMacro(){
+static void Lst_handle_analog(void *userdata, LEWOS_u16 channel, LEWOS_api_time time, LEWOS_u16 new_value){
+	LEWOS_u16 *report_value = static_cast<LEWOS_u16 *>(userdata);
+	*report_value = new_value;
+}
+
+static void Lst_read_event(void *userdata, LEWOS_u16 channel, LEWOS_api_time time, bool &triggered_out){
+	if (channel == 100) { // We only trigger events on channel 100
+		bool *do_event = static_cast<bool *>(userdata);
+		if (*do_event) {
+			triggered_out = true;
+			*do_event = false;
+		} else {
+			triggered_out = false;
+		}
+	} else {
+		triggered_out = false;
+	}
+}
+
+int get_num_instructions( int domain, int channel ){
+
+	//the instruction count
+	int count = 0;
+
+	//since list is sorted, keep a bool to determine if the block of records for a domain-channel combination has ended
+	bool fndBlock = false;
+
+	//count the instructions
+	for( int i = 0; i < actuatorRecords.size(); i++ ){
+		if( (*actuatorRecords[i]).domainID == domain && (*actuatorRecords[i]).channelID == channel ){
+			count++;
+			fndBlock = true;
+
+		}
+		else if( fndBlock ){
+			break;
+		}
+	}
+
+	return count;
+
+}
+
+void prepMacro(){
 
 	//get the current time
 	struct timeval now;
 	vrpn_gettimeofday(&now, NULL);
 
-	//intialize domains vector with the global domain (not that the domainID is 0)
-	std::vector<LEWOS_sim_domain *> domains;
-	domains.push_back( new LEWOS_sim_domain(0, now, num_local_domains, 0, 0, 0, 0, 0) );
+	/* REFERENCE:
+	LEWOS_sim_domain::LEWOS_sim_domain(LEWOS_u16 domainID, const timeval init_time,
+										LEWOS_u16 num_local_domains,
+										unsigned num_binary_in, unsigned num_analog_in,
+										unsigned num_binary_out, unsigned num_analog_out,
+										unsigned num_events,
+										bool report_scheduled_time)
+	*/
 
+	//intialize domains vector with the global domain (note that the domainID is 0)
+	std::vector<LEWOS_sim_domain *> domains;
+	domains.push_back( new LEWOS_sim_domain(0, now, num_local_domains, 0, 1, 0, 0, 1) );
+
+	//add local domains with i as domainID and local_domain_width * local_domain_height as number of channels.
+	//These domains will have 1 trigger event.
 	for( int i = 1; i <= num_local_domains; i++ )
-		domains.push_back( new LEWOS_sim_domain(i, now, 0, 0, local_domain_width * local_domain_height, 0, 0, 0) );
+		domains.push_back( new LEWOS_sim_domain(i, now, 0, 0, local_domain_width * local_domain_height, 0, 0, 1) );
 
 	//initalize LEWOS_sim
 	LEWOS_sim sim( domains );
@@ -85,12 +145,125 @@ void simulateMacro(){
 	//compareRecords struct found in Record.h
 	sort( actuatorRecords.begin(), actuatorRecords.end(), compareRecords );
 
+	/****************************************************************
+
+							SERVER CODE
+
+	****************************************************************/
+
+	//bookkeeping
+	int analogs[ domains.size() ];
+
+	//used to trigger event; false for untriggered
+	bool event_in = false;
+
+	//instruct the server to call Lst_handle_analog when an analog value is inputted.
+	//The proper index of analogs and events is set to equal the latest input value.
+	for( int j = 0; j < domains.size(); j++ ){
+		(*domains[j]).register_report_analog(Lst_handle_analog, &analogs[j]);
+		(*domains[j]).register_read_event(Lst_read_event, &event_in);
+	}
+
+	/****************************************************************
+
+							END SERVER CODE
+
+	****************************************************************/
+
+	/****************************************************************
+
+							CLIENT CODE
+
+	****************************************************************/
+
+	LEWOS_api_domain *d;			//handle for local domains
+	int macroID = INIT_MACRO_ID;
+
+	for( int i = 1; i <= num_local_domains; i++ ){
+
+		//get a handle for the ith local domain
+		d = new LEWOS_api_domain(sim, i);
+
+		//give the instruction a very long time to act (20 seconds), simply to ensure all instructions take place in simulation
+		//will need to be tweaked in live hardware
+		d -> instruct_set_deadline( LEWOS_api_time(0, 20000) );
+
+		//build a separate macro for each channel in each local domain
+		for( int j = 0; j < local_domain_width * local_domain_height; j++ ){
+
+			//define macro
+			d -> instruct_define_macro( LEWOS_xlate_timebase_NOW, macroID, get_num_instructions(i, j), TIME_OFFSET );
+
+			//add macro instructions
+			bool fndBlock = false;			//used to deterimine when the block of domain-channel pairings ends
+			for( int k = 0; k < actuatorRecords.size(); k++ ){
+				if( (*actuatorRecords[k]).domainID == i && (*actuatorRecords[k]).channelID == j ){
+
+					/* REFERENCE
+					bool LEWOS_api_domain::instruct_analog_set(	const LEWOS_u8 TimeBase,
+																const LEWOS_u8 AnalogID,
+																const LEWOS_u16 Value,
+																const LEWOS_u32 TimeOffset)*/
+					d -> instruct_analog_set( LEWOS_xlate_timebase_NOW, 0, (*actuatorRecords[k]).actuatorValue, (*actuatorRecords[k]).timeOffset );
+
+					fndBlock = true;
+
+				}
+				else if( fndBlock ){
+					break;
+				}
+			}
+
+			//define trigger event
+			d -> instruct_map_reflex( LEWOS_xlate_timebase_NOW, macroID, EVENT_ID, TIME_OFFSET );
+
+			//increase macroID: this means that the next channel will get a new ID
+			macroID++;
+
+		}
+
+		//reset the macroID so next local domain starts at INIT_MACRO_ID
+		macroID = INIT_MACRO_ID;
+
+		//get the start time for syncing
+		struct timeval start;
+		vrpn_gettimeofday(&start, NULL);
+
+		do {
+			//update link between client and server
+			d->poll();
+			vrpn_gettimeofday(&now, NULL);
+		} while (now.tv_sec - start.tv_sec <= 1);
+
+	}
+
+	/****************************************************************
+
+							END CLIENT CODE
+
+	****************************************************************/
+
+	//prep event for triggering
+	event_in = true;
+
+	//get a handle for the global domain
+	d = new LEWOS_api_domain(sim, 0);
+
+	//fire event
+	struct timeval start;
+	vrpn_gettimeofday(&start, NULL);
+	do {
+		//update link between client and server
+		d->poll();
+		vrpn_gettimeofday(&now, NULL);
+	} while (now.tv_sec - start.tv_sec <= 1);
+
 }
 
 void parsefile( const string& filename ){
 	//open input file
 	ifstream infile;
-	infile.open( filename );
+	infile.open( filename.c_str() );
 
 	//opening of input file failed
 	if( infile.fail() ){
