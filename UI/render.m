@@ -16,8 +16,8 @@ function[F] =render(orig,interpolated,method)
 
 	interp_size = size(interpolated);
     
-    i_xrange = [1 interp_size(1)];
-    i_yrange = [1 interp_size(2)];
+    i_xrange = [1 interp_size(2)];
+    i_yrange = [1 interp_size(1)];
     %we'll use the same z range
 
     
