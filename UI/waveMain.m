@@ -1,24 +1,45 @@
-function [Author, ErrorBound, InterpolationMethod, WaveFile, wave] = waveMain(metaFilename)
+function [Author, ExcitersHeight, ExcitersWidth, TimeSample, WaveData, SaveTo] = waveMain(metaFilename)
 
 paramMap = readWaveMetadata(metaFilename);
 
 if paramMap.isKey('Author')
     Author = paramMap('Author');
 else
-    fprintf('No author specified');
+    Author = '';
+    fprintf('No author specified.\n');
 end
-if paramMap.isKey('ErrorBound')
-    ErrorBound = paramMap('ErrorBound');
+
+if paramMap.isKey('ExcitersHeight')
+    ExcitersHeight = paramMap('ExcitersHeight');
 else
-    fprintf('No error bound specified');
+    ExcitersHeight = '';
+    fprintf('No number of exiters (h) specified.\n');
 end
-if paramMap.isKey('InterpolationMethod')
-    InterpolationMethod = paramMap('InterpolationMethod');
+
+if paramMap.isKey('ExcitersWidth')
+    ExcitersWidth = paramMap('ExcitersWidth');
 else
-    fprintf('No interpolation method specified');
+    ExcitersWidth = '';
+    fprintf('No number of exciters (w) specified.\n');
 end
-if paramMap.isKey('WaveFile')
-    WaveFile = paramMap('WaveFile');
+
+if paramMap.isKey('TimeSample')
+    TimeSample = paramMap('TimeSample');
 else
-    fprintf('No Wave file specified');
+    TimeSample = '';
+    fprintf('No number of time samples specified.\n');
+end
+
+if paramMap.isKey('WaveData')
+    WaveData = paramMap('WaveData');
+else
+    WaveData = '';
+    fprintf('No file for wave data specified.\n');
+end
+
+if paramMap.isKey('SaveTo')
+    SaveTo = paramMap('SaveTo');
+else
+    SaveTo = '';
+    fprintf('No file location specified.\n');
 end
