@@ -1,3 +1,17 @@
 function [paramMap] = readWaveMetadata(filename)
-[paramName, paramValue] = textread('samplewave.mhd','%s%s');
-paramMap = containers.Map(paramName, paramValue);
+
+fid = fopen(filename);
+
+if (fid >= 0)
+    C = textscan(fid,'%s%s');
+
+    paramName = C{1};
+    paramValue = C{2};
+
+    paramMap = containers.Map(paramName, paramValue);
+
+    fclose(fid);
+else
+    fprintf('Error: Could not open file to read.');
+    exit;
+end
