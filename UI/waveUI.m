@@ -23,7 +23,7 @@ function varargout = waveUI(varargin)
 % Edit the above text to modify the response to help waveUI
 
 
-% Last Modified by GUIDE v2.5 31-Mar-2013 21:03:06
+% Last Modified by GUIDE v2.5 15-Apr-2013 14:01:03
 
 
 % Begin initialization code - DO NOT EDIT
@@ -83,11 +83,13 @@ function pushbutton2_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 filename = uigetfile('*.mhd', 'Select a Wave Header file');
 set(handles.edit1, 'string', filename);
-[Author, ErrorBound, InterpolationMethod, WaveFile] = waveMain(filename);
+[Author, ExcitersHeight, ExcitersWidth, TimeSample, WaveData, SaveTo] = waveMain(filename);
 set(handles.edit2, 'string', Author);
-set(handles.edit3, 'string', ErrorBound);
-set(handles.edit4, 'string', InterpolationMethod);
-set(handles.edit5, 'string', WaveFile);
+set(handles.edit3, 'string', ExcitersHeight);
+set(handles.edit7, 'string', ExcitersWidth);
+set(handles.edit8, 'string', TimeSample);
+set(handles.edit5, 'string', WaveData);
+set(handles.edit6, 'string', SaveTo);
 
 
 
@@ -159,30 +161,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-
-function edit4_Callback(hObject, eventdata, handles)
-% hObject    handle to edit4 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit4 as text
-%        str2double(get(hObject,'String')) returns contents of edit4 as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function edit4_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit4 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-
 function edit5_Callback(hObject, eventdata, handles)
 % hObject    handle to edit5 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -206,33 +184,30 @@ end
 
 
 % --- Executes on button press in pushbutton3.
-function pushbutton3_Callback(hObject, eventdata, handles)
+function [interpolated] = pushbutton3_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-%Generate some wave
-Z = generate_wave();
-  
-%Interpolate it down to 4x4 (what our exciters can actually do)
-interpolated = interpolateWave(Z,'linear',[4 4]);
+axes(handles.axes5)
+
+%not crucial
+%cla reset
+
+load_pic = imread('Loading.png');
+imshow(load_pic,'Parent',gca,'InitialMagnification',100);
+drawnow;
+
+
+Z = generate_wave(); 
+interpolated = jengaStyleAverage(Z, [16 1 20]);
 F = render(Z,interpolated,'embed');
+cla reset;
+axis off;
 
-axes(handles.axes4)
-
-%# prepare GUI
-%p = get(0,'DefaultFigurePosition');
-%hFig = g('Menubar','none', 'Resize','off', ...
- %   'Position',[p(1:2) sz(2) sz(1)]);
-
-%# play movie
+% Play movie
 movv = F;
 movie(gca, movv, 999); 
-% 
-% plot(wave(:,4),'r')
-% plot(wave(:,8),'g')
-% plot(wave(:,12),'b')
-% plot(wave(:,16),'m')
 
 
 
@@ -273,9 +248,9 @@ function pushbutton5_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 %fprintf(get(handles.edit6, 'String'))
-textToWrite = containers.Map({'Author','ErrorBound','InterpolationMethod','WaveFile'},{get(handles.edit2,'String'), get(handles.edit3,'String'), get(handles.edit4,'String'), get(handles.edit5,'String')});
+textToWrite = containers.Map({'Author', 'ExcitersHeight', 'ExcitersWidth', 'TimeSample', 'WaveData','SaveTo'},{get(handles.edit2,'String'), get(handles.edit3,'String'), get(handles.edit7,'String'), get(handles.edit8,'String'), get(handles.edit5,'String'), get(handles.edit6,'String')});
 fileToWrite = get(handles.edit6,'String');
-writeWaveMetaData(fileToWrite, textToWrite);
+writeWaveMetadata(fileToWrite, textToWrite);
 
 
 % --- If Enable == 'on', executes on mouse press in 5 pixel border.
@@ -285,3 +260,65 @@ function pushbutton3_ButtonDownFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+
+
+function edit7_Callback(hObject, eventdata, handles)
+% hObject    handle to edit7 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit7 as text
+%        str2double(get(hObject,'String')) returns contents of edit7 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit7_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit7 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit8_Callback(hObject, eventdata, handles)
+% hObject    handle to edit8 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit8 as text
+%        str2double(get(hObject,'String')) returns contents of edit8 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit8_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit8 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in pushbutton6.
+function pushbutton6_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton6 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+if (exist('interpolated','var') == 1)
+    
+end
+
+
+% --- Executes on button press in pushbutton7.
+function pushbutton7_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton7 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)

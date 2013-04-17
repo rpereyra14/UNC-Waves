@@ -1,41 +1,59 @@
-function [ interpWave ] = jengaStyleAverage( fineExcitation, dimensions)
-%Input: An excitation pattern with high precision in x,y dimensions,
-        %dimensions (currently limited to (n x 1 x t) grid (vertical x horiz x time))
+function [ interpWave ] = jengaStyleAverageNew( fineExcitation, dimensions )
 
-%Output: An excitation pattern composed of short, wide rectangles where
-    %each rectangle has z = the average z for that same area in the high
-    %precision excitation pattern
-    
-    
-    input_size = size(fineExcitation);
+    % Round results to this decimal place.
+    tolerance = -10;
+
+    input_size = ones(3,1);
+    switch numel(size(fineExcitation))
+        case 1
+            input_size(1) = size(fineExcitation);
+        case 2
+            input_size(1:2) = size(fineExcitation);
+        case 3
+            input_size = size(fineExcitation);
+        otherwise
+            fprintf('Error: Matrix must be of dimension 3 or fewer.');
+            exit;
+    end
+        
     output_size = dimensions;
-    output_size(2) = 1; %forces it to be (n x 1 x t)
     
-    scale = input_size(1)/output_size(1); 
-    % scale is about 6 for input of 100x100 and output of 16 x 1 
-    % in this example, each short,wide rectangle in the output 
-    % covers 6 x 100 points of the input
+    scale = [input_size(1)*output_size(1) input_size(2)*output_size(2) input_size(3)*output_size(3)];
+    interpWaveScaled = zeros(scale);
+  
+%    for i = 1:input_size(3)
+%        for j = 1:output_size(3)
+%            interpWaveScaled(:,:,(i-1)*output_size(3)+j) = kron(fineExcitation(:,:,i),ones(output_size(1), output_size(2)));     
+%        end
+%    end
+ 
+    for i = 1:input_size(1)
+        for j = 1:input_size(2)
+            for k = 1:input_size(3)
+                x = ((i-1)*output_size(1))+1:(i*output_size(1));
+                y = ((j-1)*output_size(2))+1:(j*output_size(2));
+                z = ((k-1)*output_size(3))+1:(k*output_size(3));
+                
+                interpWaveScaled(x, y, z) = fineExcitation(i, j, k);
+            end
+        end
+    end
+            
+    interpWave = zeros(output_size); 
     
-    
-    
-    interpWave = ones(output_size);
-
-    for t = 1:input_size(3)
-        for i = 1:output_size(1) %iteration goes from top down
-            covered = fineExcitation((i-1)*scale+1:i*scale,:,t);
-            avg = sum(sum(covered))/(scale*input_size(2));
-            %disp(avg)
-            jengaBlock = ones(1,input_size(2));
-            jengaBlock = jengaBlock * avg;
-            %disp(size(jengaBlock));
-            %disp(size(interpWave(1,1:input_size(2))));
-            interpWave(i,1:input_size(2),t) = jengaBlock;
+    for i = 1:output_size(1)
+        for j = 1:output_size(2)
+            for k = 1:output_size(3)
+                % x, y, z specify the block from interpWaveScaled which
+                % will be averaged
+                x = ((i-1)*input_size(1))+1:(i*input_size(1));
+                y = ((j-1)*input_size(2))+1:(j*input_size(2));
+                z = ((k-1)*input_size(3))+1:(k*input_size(3));
+                
+                interpWave(i, j, k) = mean(mean(mean(interpWaveScaled(x, y, z))));
+            end
         end
     end
     
+    interpWave = roundn(interpWave, tolerance);
     
-        
-    
-    
-    
-

@@ -1,0 +1,6 @@
+Author AlexFrench
+ExcitersHeight 1
+ExcitersWidth 16
+SaveTo samplewave2.mhd
+TimeSample 100
+WaveData samplewave.csv
