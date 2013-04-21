@@ -155,14 +155,10 @@ void prepMacro(){
 	//bookkeeping
 	int analogs[ domains.size() ];
 
-	//used to trigger event; false for untriggered
-	bool event_in = false;
-
 	//instruct the server to call Lst_handle_analog when an analog value is inputted.
 	//The proper index of analogs and events is set to equal the latest input value.
 	for( int j = 0; j < domains.size(); j++ ){
 		(*domains[j]).register_report_analog(Lst_handle_analog, &analogs[j]);
-		(*domains[j]).register_read_event(Lst_read_event, &event_in);
 	}
 
 	/****************************************************************
@@ -229,26 +225,30 @@ void prepMacro(){
 				}
 			}
 
-			//define trigger event
-			d -> instruct_map_reflex( LEWOS_xlate_timebase_NOW, macroID, EVENT_ID, TIME_OFFSET );
-
 			//increase macroID: this means that the next channel will get a new ID
 			macroID++;
+
+			d -> instruct_call_macro( LEWOS_xlate_timebase_NOW, macroID, 0, TIME_OFFSET );
 
 		}
 
 		//reset the macroID so next local domain starts at INIT_MACRO_ID
 		macroID = INIT_MACRO_ID;
 
-		//get the start time for syncing
-		struct timeval start;
-		vrpn_gettimeofday(&start, NULL);
+	}
 
-		do {
-			//update link between client and server
-			d->poll();
-			vrpn_gettimeofday(&now, NULL);
-		} while (now.tv_sec - start.tv_sec <= 1);
+	//get the start time for syncing
+	struct timeval start;
+	vrpn_gettimeofday(&start, NULL);
+
+	for( int i = 1; i <= num_local_domains; i++ ){
+
+		//get a handle for the global domain
+		d = new LEWOS_api_domain(sim, i);
+
+		//update link between client and server
+		d->poll();
+		vrpn_gettimeofday(&now, NULL);
 
 	}
 
@@ -257,21 +257,6 @@ void prepMacro(){
 							END CLIENT CODE
 
 	****************************************************************/
-
-	//prep event for triggering
-	event_in = true;
-
-	//get a handle for the global domain
-	d = new LEWOS_api_domain(sim, 0);
-
-	//fire event
-	struct timeval start;
-	vrpn_gettimeofday(&start, NULL);
-	do {
-		//update link between client and server
-		d->poll();
-		vrpn_gettimeofday(&now, NULL);
-	} while (now.tv_sec - start.tv_sec <= 1);
 
 }
 
@@ -290,7 +275,7 @@ void parsefile( const string& filename ){
 	string temp;
 	int z_location, y_location, t;
 	int domainID, channelID, actuatorValue;
-	int flattened_z, flattened_y;
+	float flattened_z, flattened_y;
 	double val;
 
 	int line = 0;
@@ -312,39 +297,40 @@ void parsefile( const string& filename ){
 		//read the input excitation time
 		getline( infile, temp, ' ' );
 		t = atoi(temp.c_str());
+		t = t * 1000;
 
 		//read the input excitation value
 		getline( infile, temp );
 		val = atof(temp.c_str());
 
 		//flatten the z and y directions based on size of local domains
-		flattened_z = (int)floor( (float)z_location/(float)local_domain_width );
-		flattened_y = (int)floor( (float)y_location/(float)local_domain_height );
+		flattened_z = (int)(((float)z_location - 1.0)/(float)local_domain_width);
+		flattened_y = (int)(((float)y_location - 1.0)/(float)local_domain_height);
 
 		//calculate the domainID by determining mapping the (z,y) location to a local domain.
 		//The local domains need to be 1-offset (not 0-offset), thus 1 is added below.
-		domainID = flattened_z + flattened_y * global_domain_width + 1;
+		domainID = flattened_z + flattened_y * ( (float)global_domain_width/(float)local_domain_width ) + 1;
 
 		//check domainID
-		if( domainID > num_local_domains ){
+		if( domainID > num_local_domains || domainID < 0 ){
 			cerr << "Parse error in line " << line << 
 			": (z,y) coordinate given leads to domainID outside allowed range. See README for details." << endl;
 			exit( BAD_DOMAIN_ID );
 		}
 
 		//calculate the channelID within the domainID above
-		channelID = z_location - (flattened_z * local_domain_width) 
-					+ (y_location - (flattened_y * local_domain_height)) * local_domain_width;
+		channelID = ( z_location - flattened_z * local_domain_width ) 
+					+ ( y_location - flattened_y * local_domain_height ) * local_domain_width - 2;
 
 		//check channelID
-		if( channelID >= local_domain_width * local_domain_height ){
+		if( channelID >= local_domain_width * local_domain_height || channelID < 0 ){
 			cerr << "Parse error in line " << line << 
 			": (z,y) coordinate given leads to channelID outside allowed range. See README for details." << endl;
 			exit( BAD_CHANNEL_ID );
 		}
 
 		//get actuator value
-		actuatorValue = (int)floor(val * MAX_VOLTAGE);
+		actuatorValue = (int)((val/2.0 + 0.5) * MAX_VOLTAGE );
 
 		cout << "line: " << line << " -domainID: " << domainID << " -channelID: " << channelID 
 									<< " -time: " << t << " -value: " << actuatorValue << endl;
@@ -352,3 +338,5 @@ void parsefile( const string& filename ){
 		actuatorRecords.push_back( new Record(domainID, channelID, t, actuatorValue) );
 
 	}
+
+}
