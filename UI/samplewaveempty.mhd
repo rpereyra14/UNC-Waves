@@ -1,5 +1,13 @@
 Author 
+<<<<<<< HEAD
 ExcitersHeight 
 ExcitersWidth 
 TimeSample 
 WaveData 
+=======
+DimX
+DimY
+DimZ
+WaveData
+SaveTo 
+>>>>>>> 43ac889aa72362edefdbb03334f2057e26eccf69

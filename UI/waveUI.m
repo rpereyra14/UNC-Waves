@@ -81,13 +81,22 @@ function pushbutton2_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
 filename = uigetfile('*.mhd', 'Select a Wave Header file');
 set(handles.edit1, 'string', filename);
+<<<<<<< HEAD
 [Author, ExcitersHeight, ExcitersWidth, TimeSample, WaveData, SaveTo] = waveMain(filename);
 set(handles.edit2, 'string', Author);
 set(handles.edit3, 'string', ExcitersHeight);
 set(handles.edit7, 'string', ExcitersWidth);
 set(handles.edit8, 'string', TimeSample);
+=======
+[Author, DimX, DimY, DimZ, WaveData, SaveTo] = safeRead(filename);
+set(handles.edit2, 'string', Author);
+set(handles.edit3, 'string', DimX);
+set(handles.edit7, 'string', DimY);
+set(handles.edit8, 'string', DimZ);
+>>>>>>> 43ac889aa72362edefdbb03334f2057e26eccf69
 set(handles.edit5, 'string', WaveData);
 set(handles.edit6, 'string', SaveTo);
 
@@ -189,6 +198,7 @@ function [interpolated] = pushbutton3_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+<<<<<<< HEAD
 axes(handles.axes5)
 
 %not crucial
@@ -202,6 +212,29 @@ drawnow;
 Z = generate_wave(); 
 interpolated = jengaStyleAverage(Z, [16 1 20]);
 F = render(Z,interpolated,'embed');
+=======
+numExH = 16;
+numExW = 1;
+numTim = 20;
+
+fileCSV = get(handles.edit5, 'string');
+
+dimX = str2num(get(handles.edit3, 'string'));
+dimY = str2num(get(handles.edit7, 'string'));
+dimZ = str2num(get(handles.edit8, 'string'));
+
+M = processWaveCSV(fileCSV, [dimX dimY dimZ]);
+
+% Set current axes
+axes(handles.axes5);
+
+load_pic = imread('Loading.png');
+imshow(load_pic,'Parent',gca,'InitialMagnification',100);
+drawnow;
+
+interpolatedM = average(M, [numExH numExW numTim]);
+F = render(M, interpolatedM, 'embed');
+>>>>>>> 43ac889aa72362edefdbb03334f2057e26eccf69
 cla reset;
 axis off;
 
@@ -248,7 +281,11 @@ function pushbutton5_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 %fprintf(get(handles.edit6, 'String'))
+<<<<<<< HEAD
 textToWrite = containers.Map({'Author', 'ExcitersHeight', 'ExcitersWidth', 'TimeSample', 'WaveData','SaveTo'},{get(handles.edit2,'String'), get(handles.edit3,'String'), get(handles.edit7,'String'), get(handles.edit8,'String'), get(handles.edit5,'String'), get(handles.edit6,'String')});
+=======
+textToWrite = containers.Map({'Author', 'DimX', 'DimY', 'DimZ', 'WaveData','SaveTo'},{get(handles.edit2,'String'), get(handles.edit3,'String'), get(handles.edit7,'String'), get(handles.edit8,'String'), get(handles.edit5,'String'), get(handles.edit6,'String')});
+>>>>>>> 43ac889aa72362edefdbb03334f2057e26eccf69
 fileToWrite = get(handles.edit6,'String');
 writeWaveMetadata(fileToWrite, textToWrite);
 
