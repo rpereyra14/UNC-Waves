@@ -82,16 +82,17 @@ function pushbutton2_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-filename = uigetfile('*.mhd', 'Select a Wave Header file');
-set(handles.edit1, 'string', filename);
-[Author, DimX, DimY, DimZ, WaveData, SaveTo] = safeRead(filename);
-set(handles.edit2, 'string', Author);
-set(handles.edit3, 'string', DimX);
-set(handles.edit7, 'string', DimY);
-set(handles.edit8, 'string', DimZ);
-set(handles.edit5, 'string', WaveData);
-set(handles.edit6, 'string', SaveTo);
-
+[filename, newpath] = uigetfile('*.mhd', 'Select a Wave Header file');
+if ((sum(filename) ~= 0) && (sum(newpath) ~= 0))% If file selected
+    set(handles.edit1, 'string', filename);
+    [Author, DimY, DimZ, DimT, WaveData, SaveTo] = safeRead(filename);
+    set(handles.edit2, 'string', Author);
+    set(handles.edit3, 'string', num2str(uint32(str2double(DimY))));
+    set(handles.edit7, 'string', num2str(uint32(str2double(DimZ))));
+    set(handles.edit8, 'string', num2str(uint32(str2double(DimT))));
+    set(handles.edit5, 'string', WaveData);
+    set(handles.edit6, 'string', SaveTo);
+end
 
 
 function edit1_Callback(hObject, eventdata, handles)
@@ -101,6 +102,10 @@ function edit1_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit1 as text
 %        str2double(get(hObject,'String')) returns contents of edit1 as a double
+saveText = get(handles.pushbutton5, 'string');
+if (~strcmp(saveText(end),'*'))
+    set(handles.pushbutton5, 'string', [saveText '*']);
+end
 
 
 % --- Executes during object creation, after setting all properties.
@@ -124,6 +129,10 @@ function edit2_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit2 as text
 %        str2double(get(hObject,'String')) returns contents of edit2 as a double
+saveText = get(handles.pushbutton5, 'string');
+if (~strcmp(saveText(end),'*'))
+    set(handles.pushbutton5, 'string', [saveText '*']);
+end
 
 
 % --- Executes during object creation, after setting all properties.
@@ -148,6 +157,15 @@ function edit3_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of edit3 as text
 %        str2double(get(hObject,'String')) returns contents of edit3 as a double
 
+value = get(handles.edit3, 'string');
+value = uint32(str2double(value));
+set(handles.edit3, 'string', num2str(value));
+
+saveText = get(handles.pushbutton5, 'string');
+if (~strcmp(saveText(end),'*'))
+    set(handles.pushbutton5, 'string', [saveText '*']);
+end
+
 
 % --- Executes during object creation, after setting all properties.
 function edit3_CreateFcn(hObject, eventdata, handles)
@@ -169,6 +187,10 @@ function edit5_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit5 as text
 %        str2double(get(hObject,'String')) returns contents of edit5 as a double
+saveText = get(handles.pushbutton5, 'string');
+if (~strcmp(saveText(end),'*'))
+    set(handles.pushbutton5, 'string', [saveText '*']);
+end
 
 
 % --- Executes during object creation, after setting all properties.
@@ -219,10 +241,15 @@ F = render(M, interpolatedM, 'embed');
 cla reset;
 axis off;
 
-% Play movie
-movv = F;
-movie(gca, movv, 999); 
+    interpolatedM = average(M, [numExH numExW numTim]);
+    F = render(M, interpolatedM, 'embed');
+    cla reset;
+    axis off;
 
+    % Play movie
+    movv = F;
+    movie(gca, movv, 999); 
+end
 
 
 % --- Executes on button press in pushbutton4.
@@ -231,7 +258,9 @@ function pushbutton4_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 [saveOutName, pathToSaveOut] = uiputfile('*.mhd', 'Select a Wave Header file');
-set(handles.edit6, 'string', [pathToSaveOut saveOutName]);
+if ((sum(saveOutName) ~= 0) && (sum(pathToSaveOut) ~=0))
+    set(handles.edit6, 'string', [pathToSaveOut saveOutName]);
+end
 
 
 function edit6_Callback(hObject, eventdata, handles)
@@ -241,6 +270,10 @@ function edit6_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit6 as text
 %        str2double(get(hObject,'String')) returns contents of edit6 as a double
+saveText = get(handles.pushbutton5, 'string');
+if (~strcmp(saveText(end),'*'))
+    set(handles.pushbutton5, 'string', [saveText '*']);
+end
 
 
 % --- Executes during object creation, after setting all properties.
@@ -262,9 +295,19 @@ function pushbutton5_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 %fprintf(get(handles.edit6, 'String'))
-textToWrite = containers.Map({'Author', 'DimX', 'DimY', 'DimZ', 'WaveData','SaveTo'},{get(handles.edit2,'String'), get(handles.edit3,'String'), get(handles.edit7,'String'), get(handles.edit8,'String'), get(handles.edit5,'String'), get(handles.edit6,'String')});
+textToWrite = containers.Map({'Author', 'DimY', 'DimZ', 'DimT', 'WaveData','SaveTo'},{get(handles.edit2,'String'), get(handles.edit3,'String'), get(handles.edit7,'String'), get(handles.edit8,'String'), get(handles.edit5,'String'), get(handles.edit6,'String')});
 fileToWrite = get(handles.edit6,'String');
-writeWaveMetadata(fileToWrite, textToWrite);
+if (strcmp(fileToWrite,''))
+    fprintf('Please enter valid file name and location to save metadata.');
+else
+    writeWaveMetadata(fileToWrite, textToWrite);
+    set(handles.edit1, 'string', fileToWrite);
+    
+    saveText = get(handles.pushbutton5, 'string');
+    if (strcmp(saveText(end),'*'))
+        set(handles.pushbutton5, 'string', saveText(1:end-1));
+    end
+end
 
 
 % --- If Enable == 'on', executes on mouse press in 5 pixel border.
@@ -283,6 +326,15 @@ function edit7_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit7 as text
 %        str2double(get(hObject,'String')) returns contents of edit7 as a double
+
+value = get(handles.edit7, 'string');
+value = uint32(str2double(value));
+set(handles.edit7, 'string', num2str(value));
+
+saveText = get(handles.pushbutton5, 'string');
+if (~strcmp(saveText(end),'*'))
+    set(handles.pushbutton5, 'string', [saveText '*']);
+end
 
 
 % --- Executes during object creation, after setting all properties.
@@ -306,6 +358,15 @@ function edit8_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit8 as text
 %        str2double(get(hObject,'String')) returns contents of edit8 as a double
+
+value = get(handles.edit8, 'string');
+value = uint32(str2double(value));
+set(handles.edit8, 'string', num2str(value));
+
+saveText = get(handles.pushbutton5, 'string');
+if (~strcmp(saveText(end),'*'))
+    set(handles.pushbutton5, 'string', [saveText '*']);
+end
 
 
 % --- Executes during object creation, after setting all properties.
@@ -336,3 +397,8 @@ function pushbutton7_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton7 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+[filename, newpath] = uigetfile('*.csv', 'Select a Wave Data file');
+if ((sum(filename) ~= 0) && (sum(newpath) ~= 0)) % If file selected
+    set(handles.edit5, 'string', [newpath filename]);
+end
