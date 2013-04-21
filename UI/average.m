@@ -1,7 +1,7 @@
 function [ interpWave ] = average( fineExcitation, dimensions )
 
     % Round results to this decimal place.
-    tolerance = -10;
+    tolerance = -3;
 
     input_size = ones(3,1);
     switch numel(size(fineExcitation))
@@ -21,23 +21,28 @@ function [ interpWave ] = average( fineExcitation, dimensions )
     scale = [input_size(1)*output_size(1) input_size(2)*output_size(2) input_size(3)*output_size(3)];
     interpWaveScaled = zeros(scale);
   
-%    for i = 1:input_size(3)
-%        for j = 1:output_size(3)
-%            interpWaveScaled(:,:,(i-1)*output_size(3)+j) = kron(fineExcitation(:,:,i),ones(output_size(1), output_size(2)));     
-%        end
-%    end
+    
+    %CHOOSE THIS 
+   for i = 1:input_size(3)
+       for j = 1:output_size(3)
+           interpWaveScaled(:,:,(i-1)*output_size(3)+j) = kron(fineExcitation(:,:,i),ones(output_size(1), output_size(2)));     
+       end
+   end
+ %OR THIS
  
-    for i = 1:input_size(1)
-        for j = 1:input_size(2)
-            for k = 1:input_size(3)
-                x = ((i-1)*output_size(1))+1:(i*output_size(1));
-                y = ((j-1)*output_size(2))+1:(j*output_size(2));
-                z = ((k-1)*output_size(3))+1:(k*output_size(3));
-                
-                interpWaveScaled(x, y, z) = fineExcitation(i, j, k);
-            end
-        end
-    end
+%     for i = 1:input_size(1)
+%         for j = 1:input_size(2)
+%             for k = 1:input_size(3)
+%                 x = ((i-1)*output_size(1))+1:(i*output_size(1));
+%                 y = ((j-1)*output_size(2))+1:(j*output_size(2));
+%                 z = ((k-1)*output_size(3))+1:(k*output_size(3));
+%                 
+%                 interpWaveScaled(x, y, z) = fineExcitation(i, j, k);
+%             end
+%         end
+%     end
+
+%END CHOICE
             
     interpWave = zeros(output_size); 
     

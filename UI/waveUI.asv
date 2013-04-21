@@ -203,18 +203,18 @@ numExW = 1;
 %we don't need to interpolate in the time dimension
 numTim = orig_dimT;
 
-debug('reading from csv');
+disp('reading from csv');
 M = processWaveCSV(fileCSV, [orig_dimY orig_dimZ orig_dimT]);
-debug('done reading from csv');
+disp('done reading from csv');
 % Set current axes
 axes(handles.axes5);
 
 load_pic = imread('Loading.png');
 imshow(load_pic,'Parent',gca,'InitialMagnification',100);
 drawnow;
-debug('interpolating');
+disp('interpolating');
 interpolatedM = average(M, [numExH numExW numTim]);
-debug('rendering');
+disp('
 F = render(M, interpolatedM, 'embed');
 cla reset;
 axis off;
