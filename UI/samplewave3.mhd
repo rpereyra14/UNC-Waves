@@ -1,5 +1,14 @@
+<<<<<<< HEAD
 Author AlexFrench
 ExcitersHeight 1
 ExcitersWidth 18
 TimeSample 175
 WaveData samplewave.csv
+=======
+Author Alex
+DimY 5
+DimZ 49
+DimT 20
+SaveTo "C:\Users\Alexandra\Documents\Final Semester\Software Engineering\UNC-Waves\UI\samplewave3.mhd"
+WaveData "C:\Users\Alexandra\Documents\Final Semester\Software Engineering\UNC-Waves\UI\stevens_wave.csv"
+>>>>>>> 83dc35d66862f60bf99f050faeebdc9947fa639a
