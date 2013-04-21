@@ -83,6 +83,7 @@ function pushbutton2_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 filename = uigetfile('*.mhd', 'Select a Wave Header file');
 set(handles.edit1, 'string', filename);
 <<<<<<< HEAD
@@ -102,6 +103,8 @@ set(handles.edit5, 'string', WaveData);
 set(handles.edit6, 'string', SaveTo);
 
 =======
+=======
+>>>>>>> 83dc35d66862f60bf99f050faeebdc9947fa639a
 [filename, newpath] = uigetfile('*.mhd', 'Select a Wave Header file');
 if ((sum(filename) ~= 0) && (sum(newpath) ~= 0))% If file selected
     set(handles.edit1, 'string', filename);
@@ -113,6 +116,9 @@ if ((sum(filename) ~= 0) && (sum(newpath) ~= 0))% If file selected
     set(handles.edit5, 'string', WaveData);
     set(handles.edit6, 'string', SaveTo);
 end
+<<<<<<< HEAD
+>>>>>>> 83dc35d66862f60bf99f050faeebdc9947fa639a
+=======
 >>>>>>> 83dc35d66862f60bf99f050faeebdc9947fa639a
 
 
@@ -257,19 +263,31 @@ fileCSV = get(handles.edit5, 'string');
 dimY = uint32(str2double(get(handles.edit3, 'string')));
 dimZ = uint32(str2double(get(handles.edit7, 'string')));
 dimT = uint32(str2double(get(handles.edit8, 'string')));
+<<<<<<< HEAD
 
 M = processWaveCSV(fileCSV, [dimY dimZ dimT]);
 
+=======
+
+M = processWaveCSV(fileCSV, [dimY dimZ dimT]);
+
+>>>>>>> 83dc35d66862f60bf99f050faeebdc9947fa639a
 if (~isempty(M))
     % Set current axes
     axes(handles.axes5);
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 interpolatedM = average(M, [numExH numExW numTim]);
 F = render(M, interpolatedM, 'embed');
 >>>>>>> 43ac889aa72362edefdbb03334f2057e26eccf69
 cla reset;
 axis off;
+=======
+    load_pic = imread('Loading.png');
+    imshow(load_pic,'Parent',gca,'InitialMagnification',100);
+    drawnow;
+>>>>>>> 83dc35d66862f60bf99f050faeebdc9947fa639a
 =======
     load_pic = imread('Loading.png');
     imshow(load_pic,'Parent',gca,'InitialMagnification',100);
@@ -332,10 +350,14 @@ function pushbutton5_Callback(hObject, eventdata, handles)
 %fprintf(get(handles.edit6, 'String'))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 textToWrite = containers.Map({'Author', 'ExcitersHeight', 'ExcitersWidth', 'TimeSample', 'WaveData','SaveTo'},{get(handles.edit2,'String'), get(handles.edit3,'String'), get(handles.edit7,'String'), get(handles.edit8,'String'), get(handles.edit5,'String'), get(handles.edit6,'String')});
 =======
 textToWrite = containers.Map({'Author', 'DimX', 'DimY', 'DimZ', 'WaveData','SaveTo'},{get(handles.edit2,'String'), get(handles.edit3,'String'), get(handles.edit7,'String'), get(handles.edit8,'String'), get(handles.edit5,'String'), get(handles.edit6,'String')});
 >>>>>>> 43ac889aa72362edefdbb03334f2057e26eccf69
+=======
+textToWrite = containers.Map({'Author', 'DimY', 'DimZ', 'DimT', 'WaveData','SaveTo'},{get(handles.edit2,'String'), get(handles.edit3,'String'), get(handles.edit7,'String'), get(handles.edit8,'String'), get(handles.edit5,'String'), get(handles.edit6,'String')});
+>>>>>>> 83dc35d66862f60bf99f050faeebdc9947fa639a
 =======
 textToWrite = containers.Map({'Author', 'DimY', 'DimZ', 'DimT', 'WaveData','SaveTo'},{get(handles.edit2,'String'), get(handles.edit3,'String'), get(handles.edit7,'String'), get(handles.edit8,'String'), get(handles.edit5,'String'), get(handles.edit6,'String')});
 >>>>>>> 83dc35d66862f60bf99f050faeebdc9947fa639a
