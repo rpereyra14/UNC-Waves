@@ -52,8 +52,9 @@ function[F] = render(orig,interpolated,method)
         axis([i_zrange(1) i_zrange(2) i_yrange(1) i_yrange(2) eXcitationrange(1)-1 eXcitationrange(2)+1]);
 
         F(j) = im2frame(figure_grab(fig));
-        debug('drawn frame %d out of %d',j, trange(2));
-
+        if(mod(j,10) == 0)
+            debug('drawn frame %d out of %d',j, trange(2));
+        end
     end
 
     close(fig);

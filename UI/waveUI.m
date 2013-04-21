@@ -216,9 +216,10 @@ function [interpolated] = pushbutton3_Callback(hObject, eventdata, handles)
 
 fileCSV = get(handles.edit5, 'string');
 
-orig_dimY = str2num(get(handles.edit3, 'string'));
-orig_dimZ = str2num(get(handles.edit7, 'string'));
-orig_dimT = str2num(get(handles.edit8, 'string'));
+
+orig_dimY = str2double(get(handles.edit3, 'string'));
+orig_dimZ = str2double(get(handles.edit7, 'string'));
+orig_dimT = str2double(get(handles.edit8, 'string'));
 
 numExH = 16;
 numExW = 1;
@@ -229,27 +230,38 @@ debug('reading from csv');
 M = processWaveCSV(fileCSV, [orig_dimY orig_dimZ orig_dimT]);
 debug('done reading from csv');
 % Set current axes
-axes(handles.axes5);
+if (~isempty(M))
+    axes(handles.axes5);
 
-load_pic = imread('Loading.png');
-imshow(load_pic,'Parent',gca,'InitialMagnification',100);
-drawnow;
-debug('interpolating');
-interpolatedM = average(M, [numExH numExW numTim]);
-debug('rendering');
-F = render(M, interpolatedM, 'embed');
-cla reset;
-axis off;
-
+    load_pic = imread('Loading.png');
+    imshow(load_pic,'Parent',gca,'InitialMagnification',100);
+    drawnow;
+    
+    debug('interpolating');
     interpolatedM = average(M, [numExH numExW numTim]);
-    F = render(M, interpolatedM, 'embed');
+    
+    debug('rendering');
+    movv = render(M, interpolatedM, 'embed');
+    
+    % Play movie
     cla reset;
     axis off;
-
-    % Play movie
-    movv = F;
-    movie(gca, movv, 999); 
+    debug('movie started playing');
+    
+    named_axes = gca;
+    movie(named_axes, movv, 5); 
+    debug('movie done playing');
 end
+
+% function playMovie()
+%     if(!already_playing)
+%         already_playing = true
+%         while(true)
+%             i = (i +1)mod frames
+%             imshow(movv(i))
+%         end
+%     end
+    
 
 
 % --- Executes on button press in pushbutton4.
