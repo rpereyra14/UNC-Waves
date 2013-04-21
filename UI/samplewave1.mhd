@@ -1,0 +1,6 @@
+Author ajfrench
+DimY 49
+DimZ 49
+DimT 20
+SaveTo samplewave1.mhd
+WaveData stevens_wave.csv
