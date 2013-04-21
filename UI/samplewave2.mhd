@@ -1,21 +1,6 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-Author AlexFrench
-ExcitersHeight 1
-ExcitersWidth 16
-SaveTo samplewave2.mhd
-TimeSample 100
-WaveData samplewave.csv
-=======
-=======
->>>>>>> 83dc35d66862f60bf99f050faeebdc9947fa639a
 Author ajfrench
 DimY 49
 DimZ 49
 DimT 20
 SaveTo C:\Users\Alexandra\Documents\Final Semester\Software Engineering\UNC-Waves\UI\samplewave2.mhd
 WaveData stevens_wave.csv
-<<<<<<< HEAD
->>>>>>> 83dc35d66862f60bf99f050faeebdc9947fa639a
-=======
->>>>>>> 83dc35d66862f60bf99f050faeebdc9947fa639a
