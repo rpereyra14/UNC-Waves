@@ -232,6 +232,22 @@ function [] = pushbutton3_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+try
+    timer = getGlobal('timer');
+    stop(timer);
+    delete(timer);
+    handles.M ='';
+    handles.interpolatedM = '';
+    handles.axis1 = '';
+    handles.axis2 = '';
+    handles.numFrames = '';
+catch
+    
+end
+
+guidata(gcf,handles);
+
+disp(handles);
 
 
 fileCSV = get(handles.edit5, 'string');
@@ -280,13 +296,16 @@ if (~isempty(M))
     debug('movie started playing');
     
 
-
+    cla reset 
+    axis off
 
   
      
     
-    axis1 = axes('position',[.3 0 .3 1]);%subplot(1,2,1);
-    axis2 = axes('position',[.7 0 .3 1]);
+    axis1 = axes('position',[.35 .1 .3 .8]);
+    axis2 = axes('position',[.7 .1 .3 .8]);
+    
+    
     
     set(gcf,'WindowButtonDownFcn',{@my_button_down_fcn,axis1,axis2})
     set(gcf,'WindowButtonUpFcn',@my_button_up_fcn)
@@ -297,6 +316,9 @@ if (~isempty(M))
     setGlobal('axis1',axis1);
     setGlobal('axis2',axis2);
     setGlobal('numFrames',orig_dimT);
+    
+    
+    disp(guidata(gcf));
    
 
     playMovie();
@@ -398,17 +420,18 @@ function my_button_motion_fcn(hObject, eventdata)
     alternator = logical(round(triu(rand(1))));
     
     %to get 'view' to start at the default view:
-    relative_movement(1) = relative_movement(1)-37.5;
-    relative_movement(2) = relative_movement(2)+30;
+    relative_movement(1) = -3*relative_movement(1)-37.5;
+    relative_movement(2) = -3*relative_movement(2)+30;
     
-    
-    if(alternator);
-        axes(axis1);
-    else
-        axes(axis2);
-    end
+%     
+%     if(alternator);
+%         axes(axis1);
+%     else
+%         axes(axis2);
+%     end
     %camorbit(3*relative_movement(1),3*relative_movement(2),'camera');
     
+    axes(axis1);
     view(relative_movement(1),relative_movement(2));
     
     
@@ -441,6 +464,12 @@ t = timerfindall;
 if(strcmp(t.Running,'off'))
     start(t);
 end
+axis1 = getGlobal('axis1');
+[az,el] = view(axis1);
+axis2 = getGlobal('axis2');
+view(axis2,az,el);
+
+
 set(gcf,'WindowButtonMotionFcn','')
 
 
