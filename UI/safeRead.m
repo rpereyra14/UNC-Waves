@@ -1,4 +1,4 @@
-function [Author, ExcitersHeight, ExcitersWidth, TimeSample, WaveData, SaveTo] = safeRead(metaFilename)
+function [Author, ExcitersHeight, ExcitersWidth, TimeSample, WaveData] = safeRead(metaFilename)
 
 paramMap = readWaveMetadata(metaFilename);
 
@@ -37,9 +37,3 @@ else
     fprintf('No file for wave data specified.\n');
 end
 
-if paramMap.isKey('SaveTo')
-    SaveTo = paramMap('SaveTo');
-else
-    SaveTo = '';
-    fprintf('No file location specified.\n');
-end

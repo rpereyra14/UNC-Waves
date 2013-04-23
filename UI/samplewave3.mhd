@@ -1,6 +1,0 @@
-Author Alex
-DimY 5
-DimZ 49
-DimT 20
-SaveTo "C:\Users\Alexandra\Documents\Final Semester\Software Engineering\UNC-Waves\UI\samplewave3.mhd"
-WaveData "C:\Users\Alexandra\Documents\Final Semester\Software Engineering\UNC-Waves\UI\stevens_wave.csv"
