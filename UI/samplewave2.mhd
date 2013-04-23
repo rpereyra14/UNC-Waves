@@ -1,6 +1,6 @@
 Author ajfrench
+DimT 20
 DimY 49
 DimZ 49
-DimT 20
-SaveTo C:\Users\Alexandra\Documents\Final Semester\Software Engineering\UNC-Waves\UI\samplewave2.mhd
-WaveData stevens_wave.csv
+SaveTo "C:\Users\Alexandra\Documents\Final Semester\Software Engineering\UNC-Waves\UI\samplewave2.mhd"
+WaveData "C:\Users\Alexandra\Documents\Final Semester\Software Engineering\UNC-Waves\UI\stevens_wave.csv"

@@ -45,6 +45,8 @@ else
 end
 % End initialization code - DO NOT EDIT
 
+addpath utility;
+
 
 %Added by Steven
 % addpath utility
@@ -106,13 +108,13 @@ function pushbutton2_Callback(hObject, eventdata, handles)
 [filename, newpath] = uigetfile('*.mhd', 'Select a Wave Header file');
 if ((sum(filename) ~= 0) && (sum(newpath) ~= 0))% If file selected
     set(handles.edit1, 'string', filename);
-    [Author, DimY, DimZ, DimT, WaveData, SaveTo] = safeRead(filename);
+    [Author, DimY, DimZ, DimT, WaveData] = safeRead(filename);
     set(handles.edit2, 'string', Author);
     set(handles.edit3, 'string', num2str(uint32(str2double(DimY))));
     set(handles.edit7, 'string', num2str(uint32(str2double(DimZ))));
     set(handles.edit8, 'string', num2str(uint32(str2double(DimT))));
     set(handles.edit5, 'string', WaveData);
-    set(handles.edit6, 'string', SaveTo);
+%    set(handles.edit6, 'string', SaveTo);
 end
 
 
@@ -246,7 +248,8 @@ numExW = 1;
 %we don't need to interpolate in the time dimension
 numTim = orig_dimT;
 
-debug('reading from csv');
+debug('reading from csv: %s',fileCSV);
+
 M = processWaveCSV(fileCSV, [orig_dimY orig_dimZ orig_dimT]);
 debug('done reading from csv');
 % Set current axes
@@ -261,6 +264,8 @@ if (~isempty(M))
     debug('interpolating');
     interpolatedM = average(M, [numExH numExW numTim]);
 
+    
+    
     
     debug('rendering');
     %movv = render(M, interpolatedM, 'embed');
@@ -470,22 +475,38 @@ function pushbutton4_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+saveAs(handles);
+
+% --- Executes on button press in pushbutton5.
+function pushbutton5_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton5 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+%fprintf(get(handles.edit6, 'String'))
+fileToWrite = get(handles.edit1,'String');
+if (isempty(fileToWrite))
+    saveAs(handles);
+else
+    save(handles, fileToWrite);
+end
+
+function saveAs(handles)
 [saveOutName, pathToSaveOut] = uiputfile('*.mhd', 'Select a Wave Header file');
 if ((sum(saveOutName) ~= 0) && (sum(pathToSaveOut) ~=0))
-    set(handles.edit6, 'string', [pathToSaveOut saveOutName]);
+    fileToWrite = [pathToSaveOut saveOutName];
+    set(handles.edit1, 'string', fileToWrite);
+    save(handles, fileToWrite);
 end
 
 
-function edit6_Callback(hObject, eventdata, handles)
-% hObject    handle to edit6 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+function save(handles, fileToWrite)
+textToWrite = containers.Map({'Author', 'DimY', 'DimZ', 'DimT', 'WaveData'},{get(handles.edit2,'String'), get(handles.edit3,'String'), get(handles.edit7,'String'), get(handles.edit8,'String'), get(handles.edit5,'String')});
 
-% Hints: get(hObject,'String') returns contents of edit6 as text
-%        str2double(get(hObject,'String')) returns contents of edit6 as a double
+writeWaveMetadata(fileToWrite, textToWrite);
+    
 saveText = get(handles.pushbutton5, 'string');
-if (~strcmp(saveText(end),'*'))
-    set(handles.pushbutton5, 'string', [saveText '*']);
+if (strcmp(saveText(end),'*'))
+    set(handles.pushbutton5, 'string', saveText(1:end-1));
 end
 
 
@@ -499,27 +520,6 @@ function edit6_CreateFcn(hObject, eventdata, handles)
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
-end
-
-
-% --- Executes on button press in pushbutton5.
-function pushbutton5_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton5 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-%fprintf(get(handles.edit6, 'String'))
-textToWrite = containers.Map({'Author', 'DimY', 'DimZ', 'DimT', 'WaveData','SaveTo'},{get(handles.edit2,'String'), get(handles.edit3,'String'), get(handles.edit7,'String'), get(handles.edit8,'String'), get(handles.edit5,'String'), get(handles.edit6,'String')});
-fileToWrite = get(handles.edit6,'String');
-if (strcmp(fileToWrite,''))
-    fprintf('Please enter valid file name and location to save metadata.');
-else
-    writeWaveMetadata(fileToWrite, textToWrite);
-    set(handles.edit1, 'string', fileToWrite);
-    
-    saveText = get(handles.pushbutton5, 'string');
-    if (strcmp(saveText(end),'*'))
-        set(handles.pushbutton5, 'string', saveText(1:end-1));
-    end
 end
 
 
@@ -600,8 +600,9 @@ function pushbutton6_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton6 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-if (exist('interpolated','var') == 1)
-    
+
+if (exist('interpolatedM','var') == 1)
+    exportToLewos(handles.interpolatedM, 'temp.txt')
 end
 
 
