@@ -46,6 +46,15 @@ end
 % End initialization code - DO NOT EDIT
 
 
+%Added by Steven
+% addpath utility
+% global movv2;
+% global movie_playing;
+% movie_playing = 0;
+    
+
+
+
 % --- Executes just before waveUI is made visible.
 function waveUI_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
@@ -60,8 +69,20 @@ handles.output = hObject;
 % Update handles structure
 guidata(hObject, handles);
 
+
+set(gcf,'CloseRequestFcn',@my_closefcn)
+
 % UIWAIT makes waveUI wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
+
+function my_closefcn(hObject, eventdata, handles, varargin)
+timers = timerfindall;
+if(numel(timers)>0)
+    stop(timerfindall);
+    delete(timerfindall);
+end
+delete(gcf);
+setGlobal('closing',true);
 
 
 % --- Outputs from this function are returned to the command line.
@@ -207,11 +228,10 @@ end
 
 
 % --- Executes on button press in pushbutton3.
-function [interpolated] = pushbutton3_Callback(hObject, eventdata, handles)
+function [] = pushbutton3_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
 
 
 fileCSV = get(handles.edit5, 'string');
@@ -231,7 +251,8 @@ M = processWaveCSV(fileCSV, [orig_dimY orig_dimZ orig_dimT]);
 debug('done reading from csv');
 % Set current axes
 if (~isempty(M))
-    axes(handles.axes5);
+    %axes(handles.axes5);
+    axes('position',[.1  .1  1  1])
 
     load_pic = imread('Loading.png');
     imshow(load_pic,'Parent',gca,'InitialMagnification',100);
@@ -239,29 +260,209 @@ if (~isempty(M))
     
     debug('interpolating');
     interpolatedM = average(M, [numExH numExW numTim]);
+
     
     debug('rendering');
-    movv = render(M, interpolatedM, 'embed');
+    %movv = render(M, interpolatedM, 'embed');
+    
+    
+    debug('making drawable');
+    M = makeDrawable(M);
+    interpolatedM = makeDrawable(interpolatedM);
+    
+   
+    
+    
     
     % Play movie
-    cla reset;
-    axis off;
+    %cla reset;
+    %axis off;
     debug('movie started playing');
     
-    named_axes = gca;
-    movie(named_axes, movv, 5); 
-    debug('movie done playing');
+
+
+
+  
+     
+    
+    axis1 = axes('position',[.3 0 .3 1]);%subplot(1,2,1);
+    axis2 = axes('position',[.7 0 .3 1]);
+    
+    set(gcf,'WindowButtonDownFcn',{@my_button_down_fcn,axis1,axis2})
+    set(gcf,'WindowButtonUpFcn',@my_button_up_fcn)
+    
+    %make these variables available outside this function
+    setGlobal('interpolatedM',interpolatedM);
+    setGlobal('M',M);
+    setGlobal('axis1',axis1);
+    setGlobal('axis2',axis2);
+    setGlobal('numFrames',orig_dimT);
+   
+
+    playMovie();
+   
+
+
+
+
+  
+    %movie(movv,999);
+    
+    
+    
+    
+    %movie(named_axes, movv, 5); 
+    setGlobal('closing',false);
+    try
+        while(~getGlobal('closing'))
+            pause(1);
+        end
+    catch
+        delete(gcf);
+    end
+    delete(gcf);
+    
 end
 
-% function playMovie()
-%     if(!already_playing)
-%         already_playing = true
-%         while(true)
-%             i = (i +1)mod frames
-%             imshow(movv(i))
-%         end
-%     end
+
+% function mytestcallback(hObject,~)
+% pos=get(hObject,'CurrentPoint');
+% disp(['You clicked X:',num2str(pos(1)),', Y:',num2str(pos(2))]);
+
+
+function playMovie()
+
+
+timers = timerfindall;
+if numel(timers) > 0
+    stop(timers);
+    delete(timers);
+end
+debug('playMovie call');
+T = timer('TimerFcn',{@playMovieCallback},'Period',.08,'ExecutionMode','fixedRate','BusyMode','queue');
+setGlobal('timer',T);
+setGlobal('timeslice',1);
+pause(0.5);
+start(T);
+
+function  playMovieCallback(src,evt)
+time = getGlobal('timeslice');
+debug('callback call # %d',time);
+time = getGlobal('timeslice');
+setGlobal('timeslice',time+1);
+length = getGlobal('numFrames');
+
+M = getGlobal('M');
+interpM = getGlobal('interpolatedM');
+axis1 = getGlobal('axis1');
+axis2 = getGlobal('axis2');
+
+surfRender(M,interpM,mod(time,length)+1,axis1,axis2);
     
+   
+function my_button_down_fcn(hObject, eventdata,axis1,axis2)
+t = timerfindall;
+if(strcmp(t.Running,'on'))
+    stop(t);
+end
+
+pos=get(hObject,'CurrentPoint');
+setGlobal('startX',pos(1));
+setGlobal('startY',pos(2));
+setGlobal('endX',pos(1));
+setGlobal('endY',pos(2));
+setGlobal('numMoves',1);
+
+set(gcf,'WindowButtonMotionFcn',{@my_button_motion_fcn})
+
+
+function my_button_motion_fcn(hObject, eventdata)
+
+% debug('moving');
+    axis1 = getGlobal('axis1');
+    axis2 = getGlobal('axis2');
+
+    previous_endx=getGlobal('endX');
+    previous_endy=getGlobal('endY');
+
+    cur_end=get(hObject,'CurrentPoint');
+    
+    relative_movement = [cur_end(1)-previous_endx cur_end(2)-previous_endy];
+
+%     setGlobal('endX',cur_end(1));
+%     setGlobal('endY',cur_end(2));
+
+    %alternates between 0 and 1 to rotate each axis in succession
+    numMoves = getGlobal('numMoves');
+    alternator = mod(numMoves,2);
+    alternator = logical(round(triu(rand(1))));
+    
+    %to get 'view' to start at the default view:
+    relative_movement(1) = relative_movement(1)-37.5;
+    relative_movement(2) = relative_movement(2)+30;
+    
+    
+    if(alternator);
+        axes(axis1);
+    else
+        axes(axis2);
+    end
+    %camorbit(3*relative_movement(1),3*relative_movement(2),'camera');
+    
+    view(relative_movement(1),relative_movement(2));
+    
+    
+
+
+
+
+       % setGlobal('numMoves',numMoves+1);
+%     debug('f');
+% 
+%     axes(axis2);
+%     camorbit(relative_movement(1),relative_movement(2),'camera');
+%     debug('g');
+% 
+%     %axes(axis2);
+%     %camorbit(rel(1),rel(2),'camera');
+%     drawnow
+%     debug('h');
+% 
+%     %viewtarget = get(gca,'CameraTarget');
+%     %set(axis1,'CameraTarget',viewtarget);
+%     %set(gcf,'WindowButtonMotionFcn',{@my_button_motion_fcn,pos(1),pos(2),axis1,axis2})
+%     %disp(['You clicked X:',num2str(rel(1)),', Y:',num2str(rel(2))]);
+
+
+           
+function my_button_up_fcn(hObject, eventdata)
+debug('hi');
+t = timerfindall;
+if(strcmp(t.Running,'off'))
+    start(t);
+end
+set(gcf,'WindowButtonMotionFcn','')
+
+
+
+function setGlobal(name,value)
+fig = gcf;
+% debug('starting setting %s with fig = %f',name,fig);
+handles = guidata(fig);
+handles.(name)=value;
+guidata(fig,handles);
+% debug('ending setting %s with fig = %f',name,fig);
+
+ 
+    
+function [value] = getGlobal(name)
+
+fig = gcf;
+handles = guidata(fig);
+value = handles.(name);
+
+
+return 
 
 
 % --- Executes on button press in pushbutton4.

@@ -1,15 +1,16 @@
 function [wave] = generate_wave(y_range, z_range, t_range,name)
 %Generate the exciter pattern that we'll receiving from mathematicians
 
-    xstep = 1;
-    ystep = 1;
-    tstep = 1;
+    while(strcmp(name,'wave') || strcmp(name,'name'))
+        if(strcmp(name,'wave'))
+            name = input('try using a name other than "wave"...\n','s');
+        end
+        if (strcmp(name,'name'))
+            name = input('try using a name other than "name"...\n','s');
+        end
+       
+    end
 
-   
-    [X,Y,T] = meshgrid(1:xstep:y_range, ...
-                       1:ystep:z_range, ...
-                       1:tstep:t_range);
-   
     dimensions = [(y_range) ...
                   (z_range) ...
                   (t_range)];
@@ -19,9 +20,12 @@ function [wave] = generate_wave(y_range, z_range, t_range,name)
     wave = zeros(dimensions);
     
     %Generate the wave one x,y,t at a time
-    total_size = prod(dimensions);
-    for i = 1:total_size
-        wave(i) = wave_generating_function(X(i),Y(i),T(i));
+    for t = 1:t_range
+        for z = 1:z_range
+            for y = 1:y_range
+                wave(y,z,t) = wave_generating_function(y,z,t);
+            end
+        end
     end
     
     %Write it to a csv file
@@ -29,9 +33,15 @@ function [wave] = generate_wave(y_range, z_range, t_range,name)
     
     %Add this wave struct into matlab file test_waves.mat
     
-    eval([name '= wave;']);             %Create variable to hold the wave
-    eval([' clearvars -except ' name]); %Clear all other variables
-    load('test_waves.mat');             %Add to existing file
+    clearvars -except name wave
+
+    load('test_waves.mat');
+    
+    eval([name '= wave;']); %Create variable to hold the wave
+    
+    clear 'name'
+    clear 'wave'
+    
     save('test_waves.mat');
     
     
