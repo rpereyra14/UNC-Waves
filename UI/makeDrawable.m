@@ -2,7 +2,7 @@ function [ drawable_excitation_pattern ] = makeDrawable( excitation_pattern )
 %MAKEDRAWABLE Converts an excitation pattern to a form to be plotted
     debug('making drawable');
     input_size = size(excitation_pattern);
-    t_max = 50;
+    t_max = 137;
     
     assert(all(size(input_size) == [1 3]));
     

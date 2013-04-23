@@ -4,6 +4,7 @@ function[F] = render(orig,interpolated,method)
 %mine is formatted z = f(x,y,t)... they might want to choose for an
 %alternative like z = f(t,x,y)
     orig = makeDrawable(orig);
+    debug('orig: [%d %d %d]', size(orig));
     interpolated = makeDrawable(interpolated);
     debug('interpolated: [%d %d %d]',size(interpolated));
 
@@ -12,7 +13,7 @@ function[F] = render(orig,interpolated,method)
     
     yrange = [1 input_size(1)];
     zrange = [1 input_size(2)];
-    eXcitationrange = [min(min(orig)) max(max(orig))];
+    eXcitationrange = [min(min(min(orig))) max(max(max(orig)))];
     
     trange = [1 input_size(3)];
     
@@ -45,9 +46,10 @@ function[F] = render(orig,interpolated,method)
         surf(orig(:,:,j));%draw the 3d figure
         axis([zrange(1) zrange(2) yrange(1) yrange(2) eXcitationrange(1)-1 eXcitationrange(2)+1]);
 
+        
+        
         subplot(1,2,2);
 
-        
         surf(interpolated(:,:,j));%draw the interpolated version
         axis([i_zrange(1) i_zrange(2) i_yrange(1) i_yrange(2) eXcitationrange(1)-1 eXcitationrange(2)+1]);
 

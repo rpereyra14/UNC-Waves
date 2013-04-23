@@ -1,0 +1,6 @@
+Author ajfrench
+DimT 500
+DimY 49
+DimZ 49
+SaveTo C:\Users\Steven\Documents\MATLAB\UNC-Waves\UI\stevens_wave_long.mhd
+WaveData C:\Users\Steven\Documents\MATLAB\UNC-Waves\UI\stevens_wave_long.csv
