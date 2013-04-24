@@ -215,6 +215,7 @@ function [] = pushbutton3_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
 try
     timer = getGlobal('timer');
     stop(timer);
@@ -224,9 +225,20 @@ try
     handles.axis1 = '';
     handles.axis2 = '';
     handles.numFrames = '';
+    axis1 = getGlobal('axis1');
+    axis2 = getGlobal('axis2');
+        cla(axis1,'reset')
+        axis(axis1,'off');
+    cla(axis2,'reset')
+    axis(axis2,'off');
+
+    
+    assert(~isfield(handles,'interpolatedM'));
 catch
     
 end
+
+
 
 guidata(gcf,handles);
 
@@ -250,10 +262,10 @@ debug('done reading from csv');
 % Set current axes
 if (~isempty(M))
     %axes(handles.axes5);
-    axes('position',[.1  .1  1  1])
+    loading_axis=axes('position',[.1  .1  1  1]);
 
     load_pic = imread('Loading.png');
-    imshow(load_pic,'Parent',gca,'InitialMagnification',100);
+    imshow(load_pic,'Parent',loading_axis,'InitialMagnification',100);
     drawnow;
     
     debug('interpolating');
@@ -267,30 +279,24 @@ if (~isempty(M))
     
     debug('making drawable');
     M = makeDrawable(M);
+
     interpolatedM = makeDrawable(interpolatedM_raw);
+
+    interp_size = size(interpolatedM);
+   
     
     % Play movie
     %cla reset;
     %axis off;
     debug('movie started playing');
-<<<<<<< HEAD
-    
 
     cla reset 
     axis off
 
-  
-     
+ 
+    axis1 = axes('position',[.35 .1 .3 .8],'visible','off');
+    axis2 = axes('position',[.7 .1 .3 .8],'visible','off');
     
-    axis1 = axes('position',[.35 .1 .3 .8]);
-    axis2 = axes('position',[.7 .1 .3 .8]);
-    
-    
-=======
-       
-    axis1 = axes('position',[.3 0 .3 1]);%subplot(1,2,1);
-    axis2 = axes('position',[.7 0 .3 1]);
->>>>>>> f02fcc9d9a959b18f1ccff1a842304e7597faf22
     
     set(gcf,'WindowButtonDownFcn',{@my_button_down_fcn,axis1,axis2})
     set(gcf,'WindowButtonUpFcn',@my_button_up_fcn)
@@ -301,14 +307,15 @@ if (~isempty(M))
     setGlobal('M',M);
     setGlobal('axis1',axis1);
     setGlobal('axis2',axis2);
-    setGlobal('numFrames',orig_dimT);
     
+    setGlobal('numFrames',interp_size(3));
+    setGlobal('curView',[-37.5,30]);
+    setGlobal('lastView',[-37.5,30]);
     
+
     disp(guidata(gcf));
    
     playMovie();
-   
-    %movie(movv,999);
     
     %movie(named_axes, movv, 5); 
     setGlobal('closing',false);
@@ -322,11 +329,6 @@ if (~isempty(M))
     delete(gcf);
     
 end
-
-
-% function mytestcallback(hObject,~)
-% pos=get(hObject,'CurrentPoint');
-% disp(['You clicked X:',num2str(pos(1)),', Y:',num2str(pos(2))]);
 
 
 function playMovie()
@@ -347,19 +349,23 @@ start(T);
 
 
 function  playMovieCallback(src,evt)
+    time = getGlobal('timeslice');
+    setGlobal('timeslice',time+1);
+    playMovieFrame(time);
 
-time = getGlobal('timeslice');
-debug('callback call # %d',time);
-time = getGlobal('timeslice');
-setGlobal('timeslice',time+1);
+function playMovieFrame(time)
+
 length = getGlobal('numFrames');
+
+debug('time: %d, length: %d',time,length);
 
 M = getGlobal('M');
 interpM = getGlobal('interpolatedM');
 axis1 = getGlobal('axis1');
 axis2 = getGlobal('axis2');
+my_view = getGlobal('curView');
+surfRender(M,interpM,mod(time,length)+1,axis1,axis2,my_view);
 
-surfRender(M,interpM,mod(time,length)+1,axis1,axis2);
     
    
 function my_button_down_fcn(hObject, eventdata,axis1,axis2)
@@ -382,75 +388,38 @@ set(gcf,'WindowButtonMotionFcn',{@my_button_motion_fcn})
 
 function my_button_motion_fcn(hObject, eventdata)
 
-% debug('moving');
-axis1 = getGlobal('axis1');
-axis2 = getGlobal('axis2');
+ debug('moving');
+    previous_endx=getGlobal('endX');
+    previous_endy=getGlobal('endY');
 
-previous_endx=getGlobal('endX');
-previous_endy=getGlobal('endY');
 
 cur_end=get(hObject,'CurrentPoint');
     
 relative_movement = [cur_end(1)-previous_endx cur_end(2)-previous_endy];
 
-%     setGlobal('endX',cur_end(1));
-%     setGlobal('endY',cur_end(2));
 
-<<<<<<< HEAD
-    %alternates between 0 and 1 to rotate each axis in succession
-    numMoves = getGlobal('numMoves');
-    alternator = mod(numMoves,2);
-    alternator = logical(round(triu(rand(1))));
+    previousView = getGlobal('lastView');
+
     
-    %to get 'view' to start at the default view:
-    relative_movement(1) = -3*relative_movement(1)-37.5;
-    relative_movement(2) = -3*relative_movement(2)+30;
+    relative_movement(1) = -3*relative_movement(1);%-37.5;
+    relative_movement(2) = -3*relative_movement(2);%+30;
     
-%     
-%     if(alternator);
-%         axes(axis1);
-%     else
-%         axes(axis2);
-%     end
-    %camorbit(3*relative_movement(1),3*relative_movement(2),'camera');
-    
-    axes(axis1);
-    view(relative_movement(1),relative_movement(2));
-=======
-%alternates between 0 and 1 to rotate each axis in succession
-numMoves = getGlobal('numMoves');
-alternator = mod(numMoves,2);
-alternator = logical(round(triu(rand(1))));
-   
-%to get 'view' to start at the default view:
-relative_movement(1) = relative_movement(1)-37.5;
-relative_movement(2) = relative_movement(2)+30;
-   
-    
-if(alternator);
-    axes(axis1);
-else
-    axes(axis2);
-end
-%camorbit(3*relative_movement(1),3*relative_movement(2),'camera');
-    
-view(relative_movement(1),relative_movement(2));
->>>>>>> f02fcc9d9a959b18f1ccff1a842304e7597faf22
-    
-    
+    my_view = [previousView(1)+relative_movement(1) previousView(2)+relative_movement(2)];
+    setGlobal('curView',my_view);
+    playMovieFrame(getGlobal('timeslice'));
+
 function my_button_up_fcn(hObject, eventdata)
+disp(getGlobal('curView'));
 debug('hi');
 t = timerfindall;
 if(strcmp(t.Running,'off'))
     start(t);
 end
-axis1 = getGlobal('axis1');
-[az,el] = view(axis1);
-axis2 = getGlobal('axis2');
-view(axis2,az,el);
-
+[az,el] = view;
+setGlobal('lastView',[az,el]);
 
 set(gcf,'WindowButtonMotionFcn','')
+disp(getGlobal('curView'));
 
 
 function setGlobal(name,value)

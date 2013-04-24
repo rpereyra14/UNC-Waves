@@ -1,5 +1,5 @@
-function[F] = surfRender(orig,interpolated,frame,axis1,axis2)
-    
+function[F] = surfRender(orig,interpolated,frame,axis1,axis2,the_view)
+ 
 
     input_size = size(orig);
     yrange = [1 input_size(1)];
@@ -35,10 +35,13 @@ function[F] = surfRender(orig,interpolated,frame,axis1,axis2)
         %disp(size(orig(:,:,frame)));
         %campos(axis1,view1);
         surf(axis1,orig(:,:,frame));%draw the 3d figure
+                view(the_view);
+
         %camorbit(orbity,orbitz,'camera');
        % disp('b');
         axis(axis1,[1 zrange(2) 1 yrange(2) eXcitationrange(1) eXcitationrange(2)]);
-
+       view(axis1,the_view);
+       colormap(axis1,'bone');
         
         
         %subplot(1,2,2);
@@ -46,6 +49,9 @@ function[F] = surfRender(orig,interpolated,frame,axis1,axis2)
 
         surf(axis2,interpolated(:,:,frame));%draw the interpolated version
             %   camorbit(orbity,orbitz,'camera');
-        axis(axis2,[i_zrange(1) i_zrange(2) i_yrange(1) i_yrange(2) eXcitationrange(1)-1 eXcitationrange(2)+1]);
+        axis(axis2,[i_zrange(1) i_zrange(2) i_yrange(1) i_yrange(2) eXcitationrange(1) eXcitationrange(2)]);
+        view(axis2,the_view);
+               colormap(axis2,'bone');
+
 
 
