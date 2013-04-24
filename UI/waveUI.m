@@ -279,7 +279,11 @@ if (~isempty(M))
     
     debug('making drawable');
     M = makeDrawable(M);
+
     interpolatedM = makeDrawable(interpolatedM_raw);
+
+    interp_size = size(interpolatedM);
+   
     
     % Play movie
     %cla reset;
@@ -303,7 +307,8 @@ if (~isempty(M))
     setGlobal('M',M);
     setGlobal('axis1',axis1);
     setGlobal('axis2',axis2);
-    setGlobal('numFrames',orig_dimT);
+    
+    setGlobal('numFrames',interp_size(3));
     setGlobal('curView',[-37.5,30]);
     setGlobal('lastView',[-37.5,30]);
     
