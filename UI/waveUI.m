@@ -45,16 +45,12 @@ else
 end
 % End initialization code - DO NOT EDIT
 
-addpath utility;
-
 
 %Added by Steven
 % addpath utility
 % global movv2;
 % global movie_playing;
 % movie_playing = 0;
-    
-
 
 
 % --- Executes just before waveUI is made visible.
@@ -84,7 +80,7 @@ if(numel(timers)>0)
     delete(timerfindall);
 end
 delete(gcf);
-setGlobal('closing',true);
+%setGlobal('closing',true);
 
 
 % --- Outputs from this function are returned to the command line.
@@ -114,7 +110,6 @@ if ((sum(filename) ~= 0) && (sum(newpath) ~= 0))% If file selected
     set(handles.edit7, 'string', num2str(uint32(str2double(DimZ))));
     set(handles.edit8, 'string', num2str(uint32(str2double(DimT))));
     set(handles.edit5, 'string', WaveData);
-%    set(handles.edit6, 'string', SaveTo);
 end
 
 
@@ -125,10 +120,7 @@ function edit1_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit1 as text
 %        str2double(get(hObject,'String')) returns contents of edit1 as a double
-saveText = get(handles.pushbutton5, 'string');
-if (~strcmp(saveText(end),'*'))
-    set(handles.pushbutton5, 'string', [saveText '*']);
-end
+modifiedMetadata(handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -144,7 +136,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-
 function edit2_Callback(hObject, eventdata, handles)
 % hObject    handle to edit2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -152,10 +143,7 @@ function edit2_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit2 as text
 %        str2double(get(hObject,'String')) returns contents of edit2 as a double
-saveText = get(handles.pushbutton5, 'string');
-if (~strcmp(saveText(end),'*'))
-    set(handles.pushbutton5, 'string', [saveText '*']);
-end
+modifiedMetadata(handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -171,7 +159,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-
 function edit3_Callback(hObject, eventdata, handles)
 % hObject    handle to edit3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -184,10 +171,7 @@ value = get(handles.edit3, 'string');
 value = uint32(str2double(value));
 set(handles.edit3, 'string', num2str(value));
 
-saveText = get(handles.pushbutton5, 'string');
-if (~strcmp(saveText(end),'*'))
-    set(handles.pushbutton5, 'string', [saveText '*']);
-end
+modifiedMetadata(handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -210,10 +194,7 @@ function edit5_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit5 as text
 %        str2double(get(hObject,'String')) returns contents of edit5 as a double
-saveText = get(handles.pushbutton5, 'string');
-if (~strcmp(saveText(end),'*'))
-    set(handles.pushbutton5, 'string', [saveText '*']);
-end
+modifiedMetadata(handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -251,9 +232,7 @@ guidata(gcf,handles);
 
 disp(handles);
 
-
 fileCSV = get(handles.edit5, 'string');
-
 
 orig_dimY = str2double(get(handles.edit3, 'string'));
 orig_dimZ = str2double(get(handles.edit7, 'string'));
@@ -278,27 +257,23 @@ if (~isempty(M))
     drawnow;
     
     debug('interpolating');
-    interpolatedM = average(M, [numExH numExW numTim]);
-
     
-    
+    interpolatedM_raw = average(M, [numExH numExW numTim]);
+%    handles.interpolatedM = interpolatedM;
+%    guidata(hObject, handles);
     
     debug('rendering');
     %movv = render(M, interpolatedM, 'embed');
     
-    
     debug('making drawable');
     M = makeDrawable(M);
-    interpolatedM = makeDrawable(interpolatedM);
-    
-   
-    
-    
+    interpolatedM = makeDrawable(interpolatedM_raw);
     
     % Play movie
     %cla reset;
     %axis off;
     debug('movie started playing');
+<<<<<<< HEAD
     
 
     cla reset 
@@ -311,12 +286,18 @@ if (~isempty(M))
     axis2 = axes('position',[.7 .1 .3 .8]);
     
     
+=======
+       
+    axis1 = axes('position',[.3 0 .3 1]);%subplot(1,2,1);
+    axis2 = axes('position',[.7 0 .3 1]);
+>>>>>>> f02fcc9d9a959b18f1ccff1a842304e7597faf22
     
     set(gcf,'WindowButtonDownFcn',{@my_button_down_fcn,axis1,axis2})
     set(gcf,'WindowButtonUpFcn',@my_button_up_fcn)
     
     %make these variables available outside this function
     setGlobal('interpolatedM',interpolatedM);
+    setGlobal('interpolatedM_raw',interpolatedM_raw);
     setGlobal('M',M);
     setGlobal('axis1',axis1);
     setGlobal('axis2',axis2);
@@ -325,18 +306,9 @@ if (~isempty(M))
     
     disp(guidata(gcf));
    
-
     playMovie();
    
-
-
-
-
-  
     %movie(movv,999);
-    
-    
-    
     
     %movie(named_axes, movv, 5); 
     setGlobal('closing',false);
@@ -359,12 +331,13 @@ end
 
 function playMovie()
 
-
 timers = timerfindall;
+
 if numel(timers) > 0
     stop(timers);
     delete(timers);
 end
+
 debug('playMovie call');
 T = timer('TimerFcn',{@playMovieCallback},'Period',.08,'ExecutionMode','fixedRate','BusyMode','queue');
 setGlobal('timer',T);
@@ -372,7 +345,9 @@ setGlobal('timeslice',1);
 pause(0.5);
 start(T);
 
+
 function  playMovieCallback(src,evt)
+
 time = getGlobal('timeslice');
 debug('callback call # %d',time);
 time = getGlobal('timeslice');
@@ -388,7 +363,9 @@ surfRender(M,interpM,mod(time,length)+1,axis1,axis2);
     
    
 function my_button_down_fcn(hObject, eventdata,axis1,axis2)
+
 t = timerfindall;
+
 if(strcmp(t.Running,'on'))
     stop(t);
 end
@@ -406,19 +383,20 @@ set(gcf,'WindowButtonMotionFcn',{@my_button_motion_fcn})
 function my_button_motion_fcn(hObject, eventdata)
 
 % debug('moving');
-    axis1 = getGlobal('axis1');
-    axis2 = getGlobal('axis2');
+axis1 = getGlobal('axis1');
+axis2 = getGlobal('axis2');
 
-    previous_endx=getGlobal('endX');
-    previous_endy=getGlobal('endY');
+previous_endx=getGlobal('endX');
+previous_endy=getGlobal('endY');
 
-    cur_end=get(hObject,'CurrentPoint');
+cur_end=get(hObject,'CurrentPoint');
     
-    relative_movement = [cur_end(1)-previous_endx cur_end(2)-previous_endy];
+relative_movement = [cur_end(1)-previous_endx cur_end(2)-previous_endy];
 
 %     setGlobal('endX',cur_end(1));
 %     setGlobal('endY',cur_end(2));
 
+<<<<<<< HEAD
     %alternates between 0 and 1 to rotate each axis in succession
     numMoves = getGlobal('numMoves');
     alternator = mod(numMoves,2);
@@ -438,31 +416,28 @@ function my_button_motion_fcn(hObject, eventdata)
     
     axes(axis1);
     view(relative_movement(1),relative_movement(2));
+=======
+%alternates between 0 and 1 to rotate each axis in succession
+numMoves = getGlobal('numMoves');
+alternator = mod(numMoves,2);
+alternator = logical(round(triu(rand(1))));
+   
+%to get 'view' to start at the default view:
+relative_movement(1) = relative_movement(1)-37.5;
+relative_movement(2) = relative_movement(2)+30;
+   
+    
+if(alternator);
+    axes(axis1);
+else
+    axes(axis2);
+end
+%camorbit(3*relative_movement(1),3*relative_movement(2),'camera');
+    
+view(relative_movement(1),relative_movement(2));
+>>>>>>> f02fcc9d9a959b18f1ccff1a842304e7597faf22
     
     
-
-
-
-
-       % setGlobal('numMoves',numMoves+1);
-%     debug('f');
-% 
-%     axes(axis2);
-%     camorbit(relative_movement(1),relative_movement(2),'camera');
-%     debug('g');
-% 
-%     %axes(axis2);
-%     %camorbit(rel(1),rel(2),'camera');
-%     drawnow
-%     debug('h');
-% 
-%     %viewtarget = get(gca,'CameraTarget');
-%     %set(axis1,'CameraTarget',viewtarget);
-%     %set(gcf,'WindowButtonMotionFcn',{@my_button_motion_fcn,pos(1),pos(2),axis1,axis2})
-%     %disp(['You clicked X:',num2str(rel(1)),', Y:',num2str(rel(2))]);
-
-
-           
 function my_button_up_fcn(hObject, eventdata)
 debug('hi');
 t = timerfindall;
@@ -478,7 +453,6 @@ view(axis2,az,el);
 set(gcf,'WindowButtonMotionFcn','')
 
 
-
 function setGlobal(name,value)
 fig = gcf;
 % debug('starting setting %s with fig = %f',name,fig);
@@ -486,7 +460,6 @@ handles = guidata(fig);
 handles.(name)=value;
 guidata(fig,handles);
 % debug('ending setting %s with fig = %f',name,fig);
-
  
     
 function [value] = getGlobal(name)
@@ -499,13 +472,13 @@ value = handles.(name);
 return 
 
 
-
 % --- Executes on button press in pushbutton4.
 function pushbutton4_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 saveAs(handles);
+
 
 % --- Executes on button press in pushbutton5.
 function pushbutton5_Callback(hObject, eventdata, handles)
@@ -520,6 +493,7 @@ else
     save(handles, fileToWrite);
 end
 
+
 function saveAs(handles)
 [saveOutName, pathToSaveOut] = uiputfile('*.mhd', 'Select a Wave Header file');
 if ((sum(saveOutName) ~= 0) && (sum(pathToSaveOut) ~=0))
@@ -533,11 +507,19 @@ function save(handles, fileToWrite)
 textToWrite = containers.Map({'Author', 'DimY', 'DimZ', 'DimT', 'WaveData'},{get(handles.edit2,'String'), get(handles.edit3,'String'), get(handles.edit7,'String'), get(handles.edit8,'String'), get(handles.edit5,'String')});
 
 writeWaveMetadata(fileToWrite, textToWrite);
-    
 saveText = get(handles.pushbutton5, 'string');
 if (strcmp(saveText(end),'*'))
     set(handles.pushbutton5, 'string', saveText(1:end-1));
 end
+
+
+function modifiedMetadata(handles)
+
+saveText = get(handles.pushbutton5, 'string');
+if (~strcmp(saveText(end),'*'))
+    set(handles.pushbutton5, 'string', [saveText '*']);
+end
+
 
 
 % --- Executes during object creation, after setting all properties.
@@ -561,7 +543,6 @@ function pushbutton3_ButtonDownFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 
-
 function edit7_Callback(hObject, eventdata, handles)
 % hObject    handle to edit7 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -574,10 +555,7 @@ value = get(handles.edit7, 'string');
 value = uint32(str2double(value));
 set(handles.edit7, 'string', num2str(value));
 
-saveText = get(handles.pushbutton5, 'string');
-if (~strcmp(saveText(end),'*'))
-    set(handles.pushbutton5, 'string', [saveText '*']);
-end
+modifiedMetadata(handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -593,7 +571,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-
 function edit8_Callback(hObject, eventdata, handles)
 % hObject    handle to edit8 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -606,10 +583,7 @@ value = get(handles.edit8, 'string');
 value = uint32(str2double(value));
 set(handles.edit8, 'string', num2str(value));
 
-saveText = get(handles.pushbutton5, 'string');
-if (~strcmp(saveText(end),'*'))
-    set(handles.pushbutton5, 'string', [saveText '*']);
-end
+modifiedMetadata(handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -631,8 +605,14 @@ function pushbutton6_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-if (exist('interpolatedM','var') == 1)
-    exportToLewos(handles.interpolatedM, 'temp.txt')
+if (isfield(handles,'interpolatedM_raw'))
+    [saveOutName, pathToSaveOut] = uiputfile('*.txt', 'Select a location to save new wave data.');
+    if ((sum(saveOutName) ~= 0) && (sum(pathToSaveOut) ~=0))
+        fileToWrite = [pathToSaveOut saveOutName];
+        exportToLewos(handles.interpolatedM_raw, fileToWrite);
+    end
+else
+    fprintf('Error: Generate data by pressing "Run Simulation" before exporting.\n');
 end
 
 
@@ -645,4 +625,5 @@ function pushbutton7_Callback(hObject, eventdata, handles)
 [filename, newpath] = uigetfile('*.csv', 'Select a Wave Data file');
 if ((sum(filename) ~= 0) && (sum(newpath) ~= 0)) % If file selected
     set(handles.edit5, 'string', [newpath filename]);
+    modifiedMetadata(handles);
 end
