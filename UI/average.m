@@ -1,8 +1,58 @@
-function [ interpWave ] = average( fineExcitation, dimensions )
+function [ averagedExcitation ] = average( fineExcitation, dimensions )
+%% Compress fine-grained excitation pattern into a (dimensions) sized excitation pattern
+%  <fineExcitation> is a Y x Z x T matrix
+%  <averagedExcitation> is a matrix with dimensions <dimensions>
+%  T may be 1, so that <fineExcitation> is just a 2 dimensional matrix
+%  Z may be 1, so that <fineExcitation> is just a 1 dimensional array
+%
+%  <dimensions> will usually be smaller than or equal to the dimensions of
+%  <fineExcitation>. 
+%
+%  For Example,
+%           fineExcitation:  [1  2]
+%                            [3  4]
+%                            [5  6]
+%                            [7  8]
+%
+%           dimensions: [2,1,1]
+%           
+%           averagedExcitation: [10/4]
+%                               [26/4]
+%
+%  This process would be applied to each timeslice 
+%  (timeslice 1 is fineExcitation(:,:,1)) for matrices with more than one
+%  timeslice.  
+%
+%   If Y and Z dimensions of <fineExcitation> are not easily
+%  divided by dimension sizes specified in <dimensions>, like converting 4
+%  rows into 3 rows, fractional portions of each row are averaged together.
+%
+%  For Example,
+%           fineExcitation: [1  2]
+%                           [3  4]
+%                           [5  6]
+%                           [7  8]
+%
+%           dimensions: [3,2,1]
+%                           
+%           averagedExcitation:        / [3/3+ 3/3   6/3+ 4/3] \
+%                              (3/4)* |  [6/3+10/3   8/3+12/3]  |
+%                                      \ [5/3+21/3   6/3+24/3] /
+%
+%   The first output row is the average of (1)*the first input row + (1/3)*the
+%   second input row.  The second output row is the average of (2/3)*the
+%   second input row + (2/3) * the third output row.  The third output row
+%   is the average of (1/3)*the third output row + (1)*the fourth output row,
+%   for a total of each input row appearing (4/3) times.  Then everything
+%   is multiplied by (3/4) to offset that.  A similar process allows for
+%   the averagedExcitation to have larger dimensions that fineExcitation,
+%   although that is not expected.
 
-    % Round results to this decimal place.
+
+    % Round results to this decimal place. (-3 for nearest .001)
     tolerance = -3;
 
+    
     input_size = ones(3,1);
     switch numel(size(fineExcitation))
         case 1
@@ -60,5 +110,5 @@ function [ interpWave ] = average( fineExcitation, dimensions )
         end
     end
     
-    interpWave = roundn(interpWave, tolerance);
+    averagedExcitation = roundn(interpWave, tolerance);
     
