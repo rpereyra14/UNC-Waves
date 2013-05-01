@@ -1,4 +1,4 @@
-## Things you'll need
+## Things you'll need (Software dependencies)
 
 * MATLAB
 
@@ -7,7 +7,11 @@
 * LEWOS
 
 	> Obtain this from UNC-CS department: `$ git clone ssh://crmullin@login.cs.unc.edu/afs/unc/proj/stm/src/git/LEWOS.git` 
-	
+
+* CMake
+	> cmake.org
+
+
 ## Compiling the Wavetank simulator
 
 * First, obtain VRPN:
@@ -64,5 +68,6 @@
           -DQUATLIB_INCLUDE_DIR:PATH=/path/to/vrpn/quat/ \
           -DLEWOSSIM_INCLUDE_DIR:PATH=/path/to/LEWOS/LEWOS_sim_lib/ \
           /path/to/UNC-Waves/LEWOS/UNC-Waves_simulator
+	$ make
 	</pre>
         
