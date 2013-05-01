@@ -10,7 +10,7 @@ function [F] = readFromLewos(fileName)
         tline = fgets(file);
         k=k+1;
     end
-    
+    fclose(file);
     
 
 end

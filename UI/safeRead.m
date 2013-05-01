@@ -1,5 +1,7 @@
-function [Author, ExcitersHeight, ExcitersWidth, TimeSample, WaveData] = safeRead(metaFilename)
+
+function [Author, DimY, DimZ, DimT, WaveData] = safeRead(metaFilename)
 %% Reads a metadata file and establishes default values if metadata is not present
+
 paramMap = readWaveMetadata(metaFilename);
 
 if paramMap.isKey('Author')
@@ -10,23 +12,23 @@ else
 end
 
 if paramMap.isKey('DimY')
-    ExcitersHeight = paramMap('DimY');
+    DimY = paramMap('DimY');
 else
-    ExcitersHeight = '';
+    DimY = '';
     fprintf('No number of data points in Y direction specified.\n');
 end
 
 if paramMap.isKey('DimZ')
-    ExcitersWidth = paramMap('DimZ');
+    DimZ = paramMap('DimZ');
 else
-    ExcitersWidth = '';
+    DimZ = '';
     fprintf('No number of data points in Z direction specified.\n');
 end
 
 if paramMap.isKey('DimT')
-    TimeSample = paramMap('DimT');
+    DimT = paramMap('DimT');
 else
-    TimeSample = '';
+    DimT = '';
     fprintf('No number of data points in T direction specified.\n');
 end
 

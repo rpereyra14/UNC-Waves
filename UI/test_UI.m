@@ -8,90 +8,90 @@ function test_suite = testMyFunctions
 initTestSuite;
  
 % Contains tests for:
-% jengaStyleAverage.m
-% writeWaveMetadata.m
-% readWaveMetadata.m
-% waveMain.m
-% waveUI.m
+% average.m - Check
+% writeWaveMetadata.m - Check
+% readWaveMetadata.m - Check
+% safeRead.m - Check
+% exportToLewos.m - Check
 
-% jengaStyleAverage: Individual dimensions
 
-function [] = testJenga_Z
-inputWave = [-2 -4 -1 5 10 -9 6 3 -7 -9 2 7 4 -9 3 4 6 0 6 0 3 0 7 6 -1 -4 2 3 1 9 -1 5 -6 -8 7 -4 -2 -1 5 8 2 4 0 -1 -7];
-inputWave = reshape(inputWave, 3, 3, 5);
+% Testing: average.m
 
-expectedOut = [-3.4 -2.8 .6 4.8 6.2 -6.6 5.6 3.6 -5.6 -3 1.2 5.4 2.4 -2.6 4.2 2 2 .8 4.2 .6 6.6 -.6 5.8 -1.2 -5.2 2.6 -1.6 -1 -.6 5.8 6.2 2.6 2 -1.6 .6 -6.4];
-expectedOut = reshape(expectedOut, 3, 3, 4);
-
-assertEqual(jengaStyleAverage(inputWave, [3 3 4]), expectedOut); 
-
-function [] = testJenga_Y
+function [] = testAverage_Y1
 inputWave = [-2 3 5 7 -1 2 0 4 -3 9 -1 -7];
 inputWave = reshape(inputWave, 2, 2, 3);
 
 expectedOut = [.5 6 .5 2 3 -4];
 expectedOut = reshape(expectedOut, 1, 2, 3);
 
-assertEqual(jengaStyleAverage(inputWave, [1 2 3]), expectedOut); 
+assertEqual(average(inputWave, [1 2 3]), expectedOut); 
 
-function [] = testJenga_X
-inputWave = [2 8 7 -2 -3 9 4 -6 3 0 -1 6 -4 8 -5 2];
-inputWave = reshape(inputWave, 2, 4, 2);
-
-expectedOut = [3.25 5.5 2 3.5 2.25 -2.25 2 1.5 -2.5 7 -4.75 3.5];
-expectedOut = reshape(expectedOut, 2, 3, 2);
-
-assertEqual(jengaStyleAverage(inputWave, [2 3 2]), expectedOut); 
-
-% jengaStyleAverage: Individual dimensions, then the whole thing at once.
-
-function [] = testJenga_AllStepZ
-inputWave = [-2 9 3 -6 -1 4 0 7 -6 -3 3 4 0 2 4 -9 1 6 7 -5 -1 -8 2 9 3 5 0 -9 -5 6 2 8 -3 -7 4 2 1 5 3 -4];
-inputWave = reshape(inputWave, 4, 5, 2);
-
-expectedOut = [-1.5 .5 2.5 1.5 1 4.5 0 -1 -5.5 1.5 2.5 6 -1.5 -2.5 4 -3.5 1 5.5 5 -4.5];
-expectedOut = reshape(expectedOut, 4, 5, 1);
-
-assertEqual(jengaStyleAverage(inputWave, [4 5 1]), expectedOut); 
-
-function [] = testJenga_AllStepX
+function [] = testAverage_Y2
 inputWave = [-1.5 .5 2.5 1.5 1 4.5 0 -1 -5.5 1.5 2.5 6 -1.5 -2.5 4 -3.5 1 5.5 5 -4.5];
 inputWave = reshape(inputWave, 4, 5, 1);
 
 expectedOut = [-1 1.3 2 1 -1.6 3.3 1 1.8 -3.1 -.9 3.4 .3 .5 3.9 4.8 -4.3];
 expectedOut = reshape(expectedOut, 4, 4, 1);
 
-assertEqual(jengaStyleAverage(inputWave, [4 4 1]), expectedOut); 
+assertEqual(average(inputWave, [4 4 1]), expectedOut); 
 
-function [] = testJenga_AllStepY
+function [] = testAverage_Y3
+inputWave = [-2 9 3 -6 -1 4 0 7 -6 -3 3 4 0 2 4 -9 1 6 7 -5 -1 -8 2 9 3 5 0 -9 -5 6 2 8 -3 -7 4 2 1 5 3 -4];
+inputWave = reshape(inputWave, 4, 5, 2);
+
+expectedOut = [.75 6 -3.75 .25 2 5.25 -5.25 0 3.75 .5 3 -5.75 2.25 6.5 -2 -2.75 -3 7.25 3.5 2.5 -6.75 -2.25 4 6.5 -4 -1.5 2.5 2 4 -2.25];
+expectedOut = reshape(expectedOut, 3, 5, 2);
+
+assertEqual(average(inputWave, [3 5 2]), expectedOut); 
+
+function [] = testAverage_Z1
+inputWave = [2 8 7 -2 -3 9 4 -6 3 0 -1 6 -4 8 -5 2];
+inputWave = reshape(inputWave, 2, 4, 2);
+
+expectedOut = [3.25 5.5 2 3.5 2.25 -2.25 2 1.5 -2.5 7 -4.75 3.5];
+expectedOut = reshape(expectedOut, 2, 3, 2);
+
+assertEqual(average(inputWave, [2 3 2]), expectedOut); 
+
+function [] = testAverage_Z2
 inputWave = [-1 1.3 2 1 -1.6 3.3 1 1.8 -3.1 -.9 3.4 .3 .5 3.9 4.8 -4.3];
 inputWave = reshape(inputWave, 4, 4, 1);
 
 expectedOut = [-.425 1.65 1.25 -.375 2.15 1.6 -2.55 1.25 1.075 1.35 4.35 -2.025];
 expectedOut = reshape(expectedOut, 3, 4, 1);
 
-assertEqual(jengaStyleAverage(inputWave, [3 4 1]), expectedOut); 
+assertEqual(average(inputWave, [3 4 1]), expectedOut); 
 
-function [] = testJenga_All
+function [] = testAverageT1
+inputWave = [-1 3 5 9 0 -7 1 9 8 1 0 6 4 6 7 2 1 7];
+inputWave = reshape(inputWave, 2, 3, 3);
+
+expectedOut = [-1 3 5 9 0 -7 1 9 8 1 0 6 4 6 7 2 1 7];
+expectedOut = reshape(expectedOut, 2, 3, 3);
+
+assertEqual(average(inputWave, [2 3 3]), expectedOut);
+
+function [] = testAverage_YZ1
 inputWave = [-2 9 3 -6 -1 4 0 7 -6 -3 3 4 0 2 4 -9 1 6 7 -5 -1 -8 2 9 3 5 0 -9 -5 6 2 8 -3 -7 4 2 1 5 3 -4];
 inputWave = reshape(inputWave, 4, 5, 2);
 
-expectedOut = [-.425 1.65 1.25 -.375 2.15 1.6 -2.55 1.25 1.075 1.35 4.35 -2.025];
-expectedOut = reshape(expectedOut, 3, 4, 1);
+expectedOut = [.65 5.2 -1.95 -1.95 1.2 4.65 -1.8 1.8 -1.95 1.9 5.8 -2.75 -1.5 -1.9 4.45 1.2 3.1 -1.45 -3.3 .7 4.1 .8 2.9 -1.3];
+expectedOut = reshape(expectedOut, 3, 4, 2);
 
-assertEqual(jengaStyleAverage(inputWave, [3 4 1]), expectedOut); 
+assertEqual(average(inputWave, [3 4 2]), expectedOut); 
 
 
-% writeWaveMetadata and readWaveMetadata:
 
+
+% Testing: writeWaveMetadata.m and readWaveMetadata.m:
 % Tests with complete data given to write and read.
-% Referenced expected values. (Not hardcoded.)
+
 function [] = testWrite_CompleteData
 
 initNoFiles = length(fopen('all'));
 
-names = {'Author', 'ExcitersHeight', 'ExcitersWidth', 'TimeSample', 'WaveData','SaveTo'};
-values = {'Author_Test', 'ExcitersHeight_Test', 'ExcitersWidth_Test', 'TimeSample_Test', 'WaveData_Test','SaveTo_Test'};
+names = {'Author', 'DimT', 'DimY', 'DimZ', 'WaveData'};
+values = {'Author_Test', 'DimT_Test', 'DimY_Test', 'DimZ_Test', 'WaveData_Test'};
 
 toWrite = containers.Map(names,values);
 file = 'temp.mhd';
@@ -113,28 +113,28 @@ else
     error('testWrite_CompleteData:noAuthor', 'Author does not exist: not written/read.')    
 end
 
-if paramMap.isKey('ExcitersHeight')
-    if ~strcmp(toWrite('ExcitersHeight'), paramMap('ExcitersHeight'))
-        error('testWrite_CompleteData:wrongExcitersHeight', 'ExcitersHeight exists but was not written/read properly.')
+if paramMap.isKey('DimT')
+    if ~strcmp(toWrite('DimT'), paramMap('DimT'))
+        error('testWrite_CompleteData:wrongDimT', 'DimT exists but was not written/read properly.')
     end
 else
-    error('testWrite_CompleteData:noExcitersHeight', 'ExcitersHeight does not exist: not written/read.')    
+    error('testWrite_CompleteData:noDimT', 'DimT does not exist: not written/read.')    
 end
 
-if paramMap.isKey('ExcitersWidth')
-    if ~strcmp(toWrite('ExcitersWidth'), paramMap('ExcitersWidth'))
-        error('testWrite_CompleteData:wrongExcitersWidth', 'ExcitersWidth exists but was not written/read properly.')
+if paramMap.isKey('DimY')
+    if ~strcmp(toWrite('DimY'), paramMap('DimY'))
+        error('testWrite_CompleteData:wrongDimY', 'DimY exists but was not written/read properly.')
     end
 else
-    error('testWrite_CompleteData:noExcitersWidth', 'ExcitersWidth does not exist: not written/read.')    
+    error('testWrite_CompleteData:noDimY', 'DimY does not exist: not written/read.')    
 end
 
-if paramMap.isKey('TimeSample')
-    if ~strcmp(toWrite('TimeSample'), paramMap('TimeSample'))
-        error('testWrite_CompleteData:wrongTimeSample', 'TimeSample exists but was not written/read properly.')
+if paramMap.isKey('DimZ')
+    if ~strcmp(toWrite('DimZ'), paramMap('DimZ'))
+        error('testWrite_CompleteData:wrongDimZ', 'DimZ exists but was not written/read properly.')
     end
 else
-    error('testWrite_CompleteData:noTimeSample', 'TimeSample does not exist: not written/read.')    
+    error('testWrite_CompleteData:noDimZ', 'DimZ does not exist: not written/read.')    
 end
 
 if paramMap.isKey('WaveData')
@@ -145,25 +145,14 @@ else
     error('testWrite_CompleteData:noWaveData', 'WaveData does not exist: not written/read.')    
 end
 
-if paramMap.isKey('SaveTo')
-    if ~strcmp(toWrite('SaveTo'), paramMap('SaveTo'))
-        error('testWrite_CompleteData:wrongSaveTo', 'SaveTo exists but was not written/read properly.')
-    end
-else
-    error('testWrite_CompleteData:noSaveTo', 'SaveTo does not exist: not written/read.')    
-end
-
 delete(file);
 
-
-% Tests with incomplete data given to write and read.
-% Hardcoded expected values.
 function [] = testWrite_IncompleteData
 
 initNoFiles = length(fopen('all'));
 
-names = {'Author', 'WaveData','SaveTo'};
-values = {'Author_Test_Again', 'WaveData_Test_Again','SaveTo_Test_Again'};
+names = {'Author', 'WaveData'};
+values = {'Author_Test_Again', 'WaveData_Test_Again'};
 
 toWrite = containers.Map(names,values);
 file = 'temp.mhd';
@@ -172,7 +161,7 @@ paramMap = readWaveMetadata(file);
 
 endNoFiles = length(fopen('all'));
 if (initNoFiles ~= endNoFiles)
-    error('testWrite_CompleteData:fileOpen', 'File left open.')
+    error('testWrite_IncompleteData:fileOpen', 'File left open.')
 end
 
 % Test existence of each param
@@ -193,37 +182,82 @@ else
     error('testWrite_CompleteData:noWaveData', 'WaveData does not exist: not written/read.')    
 end
 
-if paramMap.isKey('SaveTo')
-    if ~strcmp('SaveTo_Test_Again', paramMap('SaveTo'))
-        error('testWrite_CompleteData:wrongSaveTo', 'SaveTo exists but was not written/read properly.')
-    end
-else
-    error('testWrite_CompleteData:noSaveTo', 'SaveTo does not exist: not written/read.')    
+delete(file);
+
+
+% Testing: safeRead.m
+
+function [] = testSafeRead
+
+% Expected error messages to console
+fprintf('\nSTDOUT EXPECTED OUTPUT:\n');
+fprintf('No number of data points in Z direction specified.\n');
+fprintf('No file for wave data specified.\n');
+fprintf('\nSTDOUT ACTUAL OUTPUT:\n');
+
+initNoFiles = length(fopen('all'));
+
+names = {'Author', 'DimY', 'DimT'};
+values = {'Author_Test_Again', 'DimY_Test_Again', 'DimT_Test_Again'};
+
+toWrite = containers.Map(names,values);
+file = 'temp.mhd';
+writeWaveMetadata(file, toWrite);
+[Author, DimY, DimZ, DimT, WaveData] = safeRead(file);
+
+endNoFiles = length(fopen('all'));
+if (initNoFiles ~= endNoFiles)
+    error('testSafeRead:fileOpen', 'File left open.')
+end
+
+% Test existence of each param
+
+if ~strcmp('Author_Test_Again', Author)
+    error('testWrite_CompleteData:wrongAuthor', 'Author exists but was not written/read properly.')
+end
+
+if ~strcmp('DimT_Test_Again', DimT)
+    error('testWrite_CompleteData:wrongDimT', 'DimT exists but was not written/read properly.')
+end
+
+if ~strcmp('DimY_Test_Again', DimY)
+    error('testWrite_CompleteData:wrongDimY', 'DimY exists but was not written/read properly.')
+end
+
+if ~strcmp('', DimZ)
+    error('testWrite_CompleteData:wrongDimZ', 'DimZ exists but was not written/read properly.')
+end
+
+if ~strcmp('', WaveData)
+    error('testWrite_CompleteData:wrongWaveData', 'WaveData exists but was not written/read properly.')
 end
 
 delete(file);
 
-% waveMain.m
-
-% waveUI.m
 
 
+% Testing: exportToLewos.m
 
-% Sample test functions
-% Must begin or end with 'test'
-%{
-function [] = testFliplrVector
- 
-in = [1 2 3];
-out = fliplr(in);
-expected_out = [3 2 1];
- 
-if ~isequal(out, expected_out)
-error('testFliplrVector:notEqual', 'Incorrect output for vector.');
-end 
+function [] = testExport
 
-function [] = testFliplrMatrix
- 
-in = magic(3);
-assertEqual(fliplr(in), in(:, [3 2 1]));
-%}
+initNoFiles = length(fopen('all'));
+
+load('test_waves.mat');
+Z = wave2; % utility function for testing
+interp = average(Z, [16 1 20]);
+error_bound = 0.001;
+filename = 'tmp.txt';
+
+exportToLewos(interp, filename);
+retrieved_interpolation = readFromLewos(filename);
+success = max(max(retrieved_interpolation-interp)) < error_bound;
+
+delete(filename);
+
+endNoFiles = length(fopen('all'));
+if (initNoFiles ~= endNoFiles)
+    error('testExport:fileOpen', 'File left open.')
+end
+
+assert(success);
+
