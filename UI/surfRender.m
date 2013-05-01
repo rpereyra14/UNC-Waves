@@ -1,57 +1,28 @@
-function[F] = surfRender(orig,interpolated,frame,axis1,axis2,the_view)
- 
+function[F] = surfRender(orig_excitation_pattern,achievable_excitation_pattern,timestep,axis1,axis2,the_view)
+ %% Renders two excitation patterns at given timestep onto the two provided axes with specified camera view
 
-    input_size = size(orig);
+    input_size = size(orig_excitation_pattern);
     yrange = [1 input_size(1)];
     zrange = [1 input_size(2)];
-    eXcitationrange = [min(min(min(orig))) max(max(max(orig)))];    
+    eXcitationrange = [min(min(min(orig_excitation_pattern))) max(max(max(orig_excitation_pattern)))];    
 
-%INTERPOLATION
-	interp_size = size(interpolated);
-   
-    i_yrange = [1 interp_size(1)];
-    i_zrange = [1 interp_size(2)];
 
-    %we'll use the same z range
-
- 
-%PREPARING THE FIGURE    
-    %axis tight
-    %set(axis_handle,'nextplot','replacechildren');
+	achievable_size = size(achievable_excitation_pattern);
+    i_yrange = [1 achievable_size(1)];
+    i_zrange = [1 achievable_size(2)];
+    %we'll use the same time range
     
-    %fig = figure('Renderer','zbuffer','visible','off','Color',[240 240 240]/255);
-   
-%     if strcmp(method,'embed')
-%         set(fig, 'Position', [475, 0, 700, 675]);
-%     else
-%         set(fig, 'Position', [100 100 800 600]);
-%     end
-     
-  
-%PLOTTING
-   %for each time slice
-%    axes(axis_handle);
-        %axes(axis1);
-        %disp(size(orig(:,:,frame)));
-        %campos(axis1,view1);
-        surf(axis1,orig(:,:,frame));%draw the 3d figure
-                view(the_view);
 
-        %camorbit(orbity,orbitz,'camera');
-       % disp('b');
-        axis(axis1,[1 zrange(2) 1 yrange(2) eXcitationrange(1) eXcitationrange(2)]);
-       view(axis1,the_view);
-       colormap(axis1,'bone');
+   surf(axis1,orig_excitation_pattern(:,:,timestep));%draw the 3d figure    
+   axis(axis1,[1 zrange(2) 1 yrange(2) eXcitationrange(1) eXcitationrange(2)]);
+   view(axis1,the_view);
+   colormap(axis1,'bone');
         
-        
-        %subplot(1,2,2);
-           %    campos(axis2,view2);
-
-        surf(axis2,interpolated(:,:,frame));%draw the interpolated version
-            %   camorbit(orbity,orbitz,'camera');
-        axis(axis2,[i_zrange(1) i_zrange(2) i_yrange(1) i_yrange(2) eXcitationrange(1) eXcitationrange(2)]);
-        view(axis2,the_view);
-               colormap(axis2,'bone');
+       
+    surf(axis2,achievable_excitation_pattern(:,:,timestep));
+    axis(axis2,[i_zrange(1) i_zrange(2) i_yrange(1) i_yrange(2) eXcitationrange(1) eXcitationrange(2)]);
+    view(axis2,the_view);
+    colormap(axis2,'bone');
 
 
 

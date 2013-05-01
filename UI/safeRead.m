@@ -1,5 +1,5 @@
 function [Author, ExcitersHeight, ExcitersWidth, TimeSample, WaveData] = safeRead(metaFilename)
-
+%% Reads a metadata file and establishes default values if metadata is not present
 paramMap = readWaveMetadata(metaFilename);
 
 if paramMap.isKey('Author')

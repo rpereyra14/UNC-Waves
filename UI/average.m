@@ -1,7 +1,9 @@
 function [ averagedExcitation ] = average( fineExcitation, dimensions )
-%% Compress fine-grained excitation pattern into a (dimensions) sized excitation pattern
+%% Averages a fine-grained excitation pattern into a coarser excitation pattern
 %  <fineExcitation> is a Y x Z x T matrix
-%  <averagedExcitation> is a matrix with dimensions <dimensions>
+%  <dimensions> = [d1,d2,d3] or [d1, d2] or [d1]
+%  <averagedExcitation> is a d1 x d2 x T matrix or a d1 x Z x T matrix
+%  
 %  T may be 1, so that <fineExcitation> is just a 2 dimensional matrix
 %  Z may be 1, so that <fineExcitation> is just a 1 dimensional array
 %
@@ -19,7 +21,7 @@ function [ averagedExcitation ] = average( fineExcitation, dimensions )
 %           averagedExcitation: [10/4]
 %                               [26/4]
 %
-%  This process would be applied to each timeslice 
+%  This process would be applied to each timeslice, but no interpo
 %  (timeslice 1 is fineExcitation(:,:,1)) for matrices with more than one
 %  timeslice.  
 %
@@ -49,6 +51,7 @@ function [ averagedExcitation ] = average( fineExcitation, dimensions )
 %   although that is not expected.
 
 
+
     % Round results to this decimal place. (-3 for nearest .001)
     tolerance = -3;
 
@@ -70,29 +73,18 @@ function [ averagedExcitation ] = average( fineExcitation, dimensions )
     
     scale = [input_size(1)*output_size(1) input_size(2)*output_size(2) input_size(3)];% excluding extra time factor *output_size(3)];
     interpWaveScaled = zeros(scale);
-  
-    
-    %CHOOSE THIS 
-%   for i = 1:input_size(3)
-%       for j = 1:output_size(3)
-%           interpWaveScaled(:,:,(i-1)*output_size(3)+j) = kron(fineExcitation(:,:,i),ones(output_size(1), output_size(2)));     
-%       end
-%   end
- %OR THIS
  
     for i = 1:input_size(1)
         for j = 1:input_size(2)
             for k = 1:input_size(3)
                 x = ((i-1)*output_size(1))+1:(i*output_size(1));
                 y = ((j-1)*output_size(2))+1:(j*output_size(2));
-                z = k;%((k-1)*output_size(3))+1:(k*output_size(3));
+                z = k;
                 
                 interpWaveScaled(x, y, z) = fineExcitation(i, j, k);
             end
         end
     end
-
-%END CHOICE
             
     interpWave = zeros(output_size); 
     
