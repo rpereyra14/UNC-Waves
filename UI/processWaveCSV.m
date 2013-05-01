@@ -1,4 +1,5 @@
 function [M] = processWaveCSV(fileCSV, dimensions)
+%% Retrieves 3d matrix from a CSV file called <fileCSV> and rehapes it to dimensions of <dimensions> 
 
 M = [];
 

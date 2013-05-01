@@ -212,11 +212,19 @@ end
 
 % --- Executes on button press in pushbutton3.
 function [] = pushbutton3_Callback(hObject, eventdata, handles)
+%% Display a preview of the current excitation pattern
 % hObject    handle to pushbutton3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-try
+
+%Show loading image
+loading_axis=axes('position',[.1  .1  1  1]);
+load_pic = imread('Loading.png');
+imshow(load_pic,'Parent',loading_axis,'InitialMagnification',100);
+drawnow;
+
+try % removing any stored data from a previously viewed wave
     timer = getGlobal('timer');
     stop(timer);
     delete(timer);
@@ -231,6 +239,7 @@ try
         axis(axis1,'off');
     cla(axis2,'reset')
     axis(axis2,'off');
+    guidata(gcf,handles);
 
     
     assert(~isfield(handles,'interpolatedM'));
@@ -239,85 +248,58 @@ catch
 end
 
 
-
-guidata(gcf,handles);
-
-disp(handles);
-
+%Read from the GUI
 fileCSV = get(handles.edit5, 'string');
 
 orig_dimY = str2double(get(handles.edit3, 'string'));
 orig_dimZ = str2double(get(handles.edit7, 'string'));
 orig_dimT = str2double(get(handles.edit8, 'string'));
 
+%These are the dimensions of the exciters in the wave tank
 numExH = 16;
 numExW = 1;
-%we don't need to interpolate in the time dimension
+
+%We assume that we don't need to interpolate in the time dimension
 numTim = orig_dimT;
 
+
 debug('reading from csv: %s',fileCSV);
-
 M = processWaveCSV(fileCSV, [orig_dimY orig_dimZ orig_dimT]);
-debug('done reading from csv');
-% Set current axes
-if (~isempty(M))
-    %axes(handles.axes5);
-    loading_axis=axes('position',[.1  .1  1  1]);
 
-    load_pic = imread('Loading.png');
-    imshow(load_pic,'Parent',loading_axis,'InitialMagnification',100);
-    drawnow;
-    
-    debug('interpolating');
-    
-    interpolatedM_raw = average(M, [numExH numExW numTim]);
-%    handles.interpolatedM = interpolatedM;
-%    guidata(hObject, handles);
-    
-    debug('rendering');
-    %movv = render(M, interpolatedM, 'embed');
+if (~isempty(M))
+    debug('averaging');
+    averaged_M_raw = average(M, [numExH numExW numTim]);
     
     debug('making drawable');
     M = makeDrawable(M);
 
-    interpolatedM = makeDrawable(interpolatedM_raw);
-
-    interp_size = size(interpolatedM);
+    averaged_M = makeDrawable(averaged_M_raw);
+    averaged_size = size(averaged_M);
    
-    
-    % Play movie
-    %cla reset;
-    %axis off;
-    debug('movie started playing');
-
     cla reset 
     axis off
 
- 
     axis1 = axes('position',[.35 .1 .3 .8],'visible','off');
     axis2 = axes('position',[.7 .1 .3 .8],'visible','off');
-    
     
     set(gcf,'WindowButtonDownFcn',{@my_button_down_fcn,axis1,axis2})
     set(gcf,'WindowButtonUpFcn',@my_button_up_fcn)
     
     %make these variables available outside this function
-    setGlobal('interpolatedM',interpolatedM);
-    setGlobal('interpolatedM_raw',interpolatedM_raw);
+    setGlobal('interpolatedM',averaged_M);
+    setGlobal('interpolatedM_raw',averaged_M_raw);
     setGlobal('M',M);
     setGlobal('axis1',axis1);
     setGlobal('axis2',axis2);
     
-    setGlobal('numFrames',interp_size(3));
+    setGlobal('numFrames',averaged_size(3));
     setGlobal('curView',[-37.5,30]);
     setGlobal('lastView',[-37.5,30]);
-    
-
-    disp(guidata(gcf));
    
     playMovie();
     
-    %movie(named_axes, movv, 5); 
+    
+    %handle closing the figure
     setGlobal('closing',false);
     try
         while(~getGlobal('closing'))
@@ -332,7 +314,7 @@ end
 
 
 function playMovie()
-
+%% Internal, sets up a timer to display frames of the preview
 timers = timerfindall;
 
 if numel(timers) > 0
@@ -340,7 +322,6 @@ if numel(timers) > 0
     delete(timers);
 end
 
-debug('playMovie call');
 T = timer('TimerFcn',{@playMovieCallback},'Period',.08,'ExecutionMode','fixedRate','BusyMode','queue');
 setGlobal('timer',T);
 setGlobal('timeslice',1);
@@ -349,15 +330,14 @@ start(T);
 
 
 function  playMovieCallback(src,evt)
+%% Internal, displays the next frame of the preview and increments the time
     time = getGlobal('timeslice');
     setGlobal('timeslice',time+1);
     playMovieFrame(time);
 
 function playMovieFrame(time)
-
+%% Internal, displays an arbitrary frame of the preview
 length = getGlobal('numFrames');
-
-debug('time: %d, length: %d',time,length);
 
 M = getGlobal('M');
 interpM = getGlobal('interpolatedM');
@@ -369,7 +349,7 @@ surfRender(M,interpM,mod(time,length)+1,axis1,axis2,my_view);
     
    
 function my_button_down_fcn(hObject, eventdata,axis1,axis2)
-
+%% Internal, captures mouse press to halt preview playback
 t = timerfindall;
 
 if(strcmp(t.Running,'on'))
@@ -387,8 +367,8 @@ set(gcf,'WindowButtonMotionFcn',{@my_button_motion_fcn})
 
 
 function my_button_motion_fcn(hObject, eventdata)
+%% Internal, captures mouse motion to change the viewpoint of the surfaces
 
- debug('moving');
     previous_endx=getGlobal('endX');
     previous_endy=getGlobal('endY');
 
@@ -409,8 +389,7 @@ relative_movement = [cur_end(1)-previous_endx cur_end(2)-previous_endy];
     playMovieFrame(getGlobal('timeslice'));
 
 function my_button_up_fcn(hObject, eventdata)
-disp(getGlobal('curView'));
-debug('hi');
+%% Internal, captures mouse release and resumes playback of the preview
 t = timerfindall;
 if(strcmp(t.Running,'off'))
     start(t);
@@ -419,24 +398,22 @@ end
 setGlobal('lastView',[az,el]);
 
 set(gcf,'WindowButtonMotionFcn','')
-disp(getGlobal('curView'));
+
 
 
 function setGlobal(name,value)
+%% Adds a variable to the guidata
 fig = gcf;
-% debug('starting setting %s with fig = %f',name,fig);
 handles = guidata(fig);
 handles.(name)=value;
 guidata(fig,handles);
-% debug('ending setting %s with fig = %f',name,fig);
  
     
 function [value] = getGlobal(name)
-
+%% Gets a variable from guidata
 fig = gcf;
 handles = guidata(fig);
 value = handles.(name);
-
 
 return 
 
