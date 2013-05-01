@@ -1,5 +1,5 @@
 function [] = writeWaveMetadata(fileToWrite, textToWrite)
-
+%% Saves wave metadata to file with name <fileToWrite> and content <textToWrite>
 fid = fopen(fileToWrite, 'w');
 paramName = keys(textToWrite);
 paramValue = values(textToWrite);

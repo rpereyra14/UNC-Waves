@@ -1,10 +1,9 @@
 function [ drawable_excitation_pattern ] = makeDrawable( excitation_pattern )
-%MAKEDRAWABLE Converts an excitation pattern to a form to be plotted
-    debug('making drawable');
+%% Converts <excitation pattern> to a form that is able to be plotted by MATLAB's 'surf' function
     input_size = size(excitation_pattern);
-    t_max = 137;
+    t_max = 137; %at most this many timeslices will be drawn for the preview movie of this excitation_pattern
     
-    assert(all(size(input_size) == [1 3]));
+    assert(all(size(input_size) == [1 3])); %excitation_pattern should have 3 dimensions
     
     ydim = input_size(1);
     zdim = input_size(2);
@@ -18,7 +17,7 @@ function [ drawable_excitation_pattern ] = makeDrawable( excitation_pattern )
     total_frames = min(floor(tdim/scale),tdim);
     
     drawable_excitation_pattern = ones(ydim,zdim,total_frames);
-    debug('scale: %d',scale);
+    
     if tdim > t_max
         
         for i = 1:total_frames
@@ -38,7 +37,6 @@ function [ drawable_excitation_pattern ] = makeDrawable( excitation_pattern )
     end
     
     
-    debug('compressed matrix of [%d %d %d] down to [ %d %d %d]',input_size, size(drawable_excitation_pattern));
    
     
     

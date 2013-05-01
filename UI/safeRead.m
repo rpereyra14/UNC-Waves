@@ -1,4 +1,6 @@
+
 function [Author, DimY, DimZ, DimT, WaveData] = safeRead(metaFilename)
+%% Reads a metadata file and establishes default values if metadata is not present
 
 paramMap = readWaveMetadata(metaFilename);
 

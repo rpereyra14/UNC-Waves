@@ -1,5 +1,5 @@
 function [paramMap] = readWaveMetadata(filename)
-
+%% Reads wave meta-data from the specified file
 fid = fopen(filename);
 
 if (fid >= 0)
