@@ -3,4 +3,4 @@ DimT 20
 DimY 49
 DimZ 49
 SaveTo "C:\Users\Alexandra\Documents\Final Semester\Software Engineering\UNC-Waves\UI\samplewave2.mhd"
-WaveData "C:\Users\Alexandra\Documents\Final Semester\Software Engineering\UNC-Waves\UI\stevens_wave.csv"
+WaveData "C:\Users\Steven\Documents\Final Semester\Software Engineering\UNC-Waves\UI\stevens_wave.csv"
