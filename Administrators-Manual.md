@@ -11,6 +11,11 @@
 * CMake
 	> cmake.org
 
+## Hardware specifications
+* These don't exist yet.  
+	* However the hardware is configured, make sure that the 0 voltage in the LewOS config file is mapped to half of the voltage of the actual hardware.
+	* This way, the exciter will be able to move back and forth, in both directions.
+
 
 ## Compiling the Wavetank simulator
 
