@@ -7,7 +7,7 @@
 |																							|
 | @Title			UNC Waves COMP 523 LEWOS Simulator										|
 | @Author			Renato Pereyra															|
-| @Updated			April 8, 2013															|
+| @Updated			May 2, 2013															|
 | 																							|
 | @Description		Reads waveform data from <input_file> and simulates the behavior of 	|
 |					LEWOS based on that data. The input file must have the format:			|
@@ -27,29 +27,45 @@
 #include <iostream>					//for I/O
 #include <fstream>					//for reading input file
 #include <string>					//for handling of input file
+#include <sstream>					//for splitting string into fields
 #include <algorithm>				//for sorting records by domainID/timeOffset
 
+/* INPUT EXPECTATIONS */
+#define FIELDS_INPUT 	4			//the number of fields expected per input line
+
+/* LEWOS CONFIG PARAMETERS */
 #define VERBOSITY 		4			//verbosity value for LEWOS simulation (ranges from 0 to 4, 4 being most verbose)
 #define MAX_VOLTAGE		65536		//max LEWOS analog value
+
+/* ERROR CODES */
 #define MISUSAGE 		1			//return code for misusage (i.e. unspecified input file)
 #define BAD_FILE 		4			//return code for bad input file (i.e. input file unable to be opened)
-#define BAD_DOMAIN_ID 	5 			//return code for bad domainID calculated from input file
-#define BAD_CHANNEL_ID 	6			//return code for bad channelID calculated from input file
-#define INIT_MACRO_ID	100			//arbitrary macroID, the ID is inconsequential as long as below 256
-#define EVENT_ID 		100			//eventID must match the channelID in Lst_read_event
-#define TIME_OFFSET		10 			//the time offset is set long enough to ensure enough time for reading of instructions
-#define DEADLINE 		20000		//the deadline for each local domain instruction set
+#define IMPROPER_FORMAT	5 			//return code for file with missing fields
+#define BAD_DOMAIN_ID 	6 			//return code for bad domainID calculated from input file
+#define BAD_CHANNEL_ID 	7			//return code for bad channelID calculated from input file
+#define BAD_VALUE		8			//return code for bad actuator value
+#define BAD_Z_OFFSET	9			//return code for bad z offset
+#define BAD_Y_OFFSET	10			//return code for bad y offset
+#define BAD_TIME		11			//return code for negative input time
+
+/* USER DEFINED CONSTANTS */
+#define INIT_MACRO_ID	100			//starting macroID, the ID is inconsequential as long as below 256
+#define TIME_OFFSET		10 			//the time offset (in milliseconds) is set long enough to ensure enough time for reading of instructions
+
+#define DEADLINE 		20000		//the deadline (in milliseconds) for each local domain instruction set.
+									//Should be long enough in simulator to ensure we can see ALL behavior 
+									//but should be limited in hardware setup (don't want to let hardware run indef if it fails...).
 
 using std::ifstream;				//file reading handle
 using std::string;					//string
 using std::getline;					//read input line from file
 using std::cout;					//stdout
 using std::cerr;					//stderr
-using std::endl;					//newline char
-using std::vector;					//vector template class
-using std::sort;					//sorting routine
+using std::endl;					//newline
+using std::vector;					//vector template class for storing instructions
+using std::sort;					//sorting routine for arranging instructions by local domain/channel pairs
 
-vector<Record *> actuatorRecords;	//the z_locations excited
+vector<Record *> actuatorRecords;	//the instruction records
 
 void parsefile( const string& filename );
 void prepMacro();
@@ -69,25 +85,16 @@ int main( int argc, char* argv[] ){
 
 }
 
+
+/* FUNCTION FOR HANDLING LEWOS ANALOGS. Obtained from LEWOS_SIM.cpp */
+
 static void Lst_handle_analog(void *userdata, LEWOS_u16 channel, LEWOS_api_time time, LEWOS_u16 new_value){
 	LEWOS_u16 *report_value = static_cast<LEWOS_u16 *>(userdata);
 	*report_value = new_value;
 }
 
-static void Lst_read_event(void *userdata, LEWOS_u16 channel, LEWOS_api_time time, bool &triggered_out){
-	if (channel == 100) { // We only trigger events on channel 100
-		bool *do_event = static_cast<bool *>(userdata);
-		if (*do_event) {
-			triggered_out = true;
-			*do_event = false;
-		} else {
-			triggered_out = false;
-		}
-	} else {
-		triggered_out = false;
-	}
-}
-
+//get number of instructions for domain-channel pairs in instruction record vector
+//used to define the size of a macro, per LEWOS requirements
 int get_num_instructions( int domain, int channel ){
 
 	//the instruction count
@@ -101,13 +108,11 @@ int get_num_instructions( int domain, int channel ){
 		if( (*actuatorRecords[i]).domainID == domain && (*actuatorRecords[i]).channelID == channel ){
 			count++;
 			fndBlock = true;
-
 		}
 		else if( fndBlock ){
 			break;
 		}
 	}
-
 	return count;
 
 }
@@ -272,7 +277,8 @@ void parsefile( const string& filename ){
 	}
 
 	//placeholder variables for reading the input file
-	string temp;
+	string l;
+	vector<string> temp;
 	int z_location, y_location, t;
 	int domainID, channelID, actuatorValue;
 	float flattened_z, flattened_y;
@@ -283,25 +289,60 @@ void parsefile( const string& filename ){
 	cout << "READING FILE" << endl;
 
 	//parse input file
-	while( getline( infile, temp, ' ' ) ){
+	while( getline( infile, l ) ){
 
 		line++;
 
+		//clear previous line's fields
+		temp.clear();
+
+		//split string by fields
+		std::stringstream ss(l);
+		string item;
+		while( getline( ss, item, ' ' ) ){
+			temp.push_back( item );
+		}
+
+		//check number of fields
+		if ( temp.size() != FIELDS_INPUT ){
+			cerr << "Parse error in line " << line << ": improper number of fields." << endl;
+			exit( IMPROPER_FORMAT );
+		}
+
 		//read the input z_location
-		z_location = atoi(temp.c_str());
+		z_location = atoi(temp[0].c_str());
+
+		if( z_location < 1 || z_location > global_domain_width ){
+			cerr << "Parse error in line " << line << ": z_location " << z_location 
+			<< " falls outside [1," << global_domain_width << "]." << endl;
+			exit( BAD_Z_OFFSET );
+		}
 
 		//read the input y_location
-		getline( infile, temp, ' ' );
-		y_location = atoi(temp.c_str());
+		y_location = atoi(temp[1].c_str());
+
+		if( y_location < 1 || y_location > global_domain_height ){
+			cerr << "Parse error in line " << line << ": y_location " << y_location 
+			<< " falls outside [1," << global_domain_height << "]." << endl;
+			exit( BAD_Y_OFFSET );
+		}
 
 		//read the input excitation time
-		getline( infile, temp, ' ' );
-		t = atoi(temp.c_str());
+		t = atoi(temp[2].c_str());
 		t = t * 1000;
 
+		if( t < 0 ){
+			cerr << "Parse error in line " << line << ": time value cannot be negative." << endl;
+			exit( BAD_TIME );
+		}
+
 		//read the input excitation value
-		getline( infile, temp );
-		val = atof(temp.c_str());
+		val = atof(temp[3].c_str());
+
+		if( val < -1.0 || val > 1.0 ){
+			cerr << "Parse error in line " << line << ": actuator value " << val << " falls outside [-1,1]." << endl;
+			exit( BAD_VALUE );
+		}
 
 		//flatten the z and y directions based on size of local domains
 		flattened_z = (int)(((float)z_location - 1.0)/(float)local_domain_width);
@@ -314,7 +355,7 @@ void parsefile( const string& filename ){
 		//check domainID
 		if( domainID > num_local_domains || domainID < 0 ){
 			cerr << "Parse error in line " << line << 
-			": (z,y) coordinate given leads to domainID outside allowed range. See README for details." << endl;
+			": (z,y) coordinate given leads to domainID outside allowed range. DomainID found " << domainID << " but max is " << num_local_domains << "." << endl;
 			exit( BAD_DOMAIN_ID );
 		}
 
@@ -323,9 +364,10 @@ void parsefile( const string& filename ){
 					+ ( y_location - flattened_y * local_domain_height ) * local_domain_width - 2;
 
 		//check channelID
-		if( channelID >= local_domain_width * local_domain_height || channelID < 0 ){
+		int max_channel_id = local_domain_width * local_domain_height;
+		if( channelID >= max_channel_id || channelID < 0 ){
 			cerr << "Parse error in line " << line << 
-			": (z,y) coordinate given leads to channelID outside allowed range. See README for details." << endl;
+			": (z,y) coordinate given leads to channelID outside allowed range. ChannelID found " << channelID << " but max is " << max_channel_id << "." << endl;
 			exit( BAD_CHANNEL_ID );
 		}
 
