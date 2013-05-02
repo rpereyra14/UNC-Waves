@@ -29,21 +29,22 @@ int main( int argc, char* argv[] ){
 		std::cout << 0 << std::endl;
 		return 0;
 	}else if( temp.find( "pass", 0 ) == std::string::npos && ret != 0 ){ 
-		if( temp.find( "bad_file", 0 ) != std::string::npos && ret == 4 ){
-
-		}else if( temp.find( "improper_format", 0 ) != std::string::npos && ret == 5 ){
+		if( temp.find( "bad_file", 0 ) == std::string::npos && ret == 4 ){
 			std::cout << 1 << std::endl;
 			return 1;
-		}else if( temp.find( "bad_value", 0 ) != std::string::npos && ret == 8 ){
+		}else if( temp.find( "improper_format", 0 ) == std::string::npos && ret == 5 ){
 			std::cout << 1 << std::endl;
 			return 1;
-		}else if( temp.find( "bad_z_offset", 0 ) != std::string::npos && ret == 9 ){
+		}else if( temp.find( "bad_value", 0 ) == std::string::npos && ret == 8 ){
 			std::cout << 1 << std::endl;
 			return 1;
-		}else if( temp.find( "bad_y_offset", 0 ) != std::string::npos && ret == 10 ){
+		}else if( temp.find( "bad_z_offset", 0 ) == std::string::npos && ret == 9 ){
 			std::cout << 1 << std::endl;
 			return 1;
-		}else if( temp.find( "bad_time", 0 ) != std::string::npos && ret == 11 ){
+		}else if( temp.find( "bad_y_offset", 0 ) == std::string::npos && ret == 10 ){
+			std::cout << 1 << std::endl;
+			return 1;
+		}else if( temp.find( "bad_time", 0 ) == std::string::npos && ret == 11 ){
 			std::cout << 1 << std::endl;
 			return 1;
 		}else{
