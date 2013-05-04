@@ -1,1 +1,2 @@
-%Placeholder file so CMake does not complain.
+project(TESTER)
+set(TESTER_DEPENDS "MACRO")

@@ -21,7 +21,7 @@ int main( int argc, char* argv[] ){
 
 	char cmd[200] = "";
 	cmd[0] = '\0';
-	strcat( cmd, "../MACRO_UNC-Waves_Simulator " );
+	strcat( cmd, "./MACRO_UNC-Waves_Simulator " );
 	strcat( cmd, temp.c_str() );
 	int ret = system( cmd );
 

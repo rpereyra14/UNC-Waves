@@ -17,8 +17,34 @@
 	* This way, the exciter will be able to move back and forth, in both directions.
 
 
-## Compiling the Wavetank simulator
+## Compiling the Wavetank simulator with superbuild
 
+* First, you'll need to get LEWOS.  Integration to download LEWOS is tricky because we have to authenticate.
+
+* Create your superbuild directory:
+	<pre>
+	$ mkdir UNC_Waves_Simulator-superbuild && cd UNC_Waves_Simulator-superbuild
+	</pre>
+* Configure:
+	<pre>
+	$ cmake -DCMAKE_C_COMPILER:PATH=/usr/bin/gcc \
+	  -DCMAKE_CXX_COMPILER:PATH=/usr/bin/g++ \
+	  -DLEWOS_ROOT_DIR:PATH=/path/to/LEWOS \
+	  /path/to/UNC-Waves/LEWOS/UNC-Waves_Simulator
+	</pre>
+
+* Build:
+	<pre>
+	$ make
+	</pre>
+
+*Test (if you like)
+	<pre>
+	$ make test
+	</pre>
+
+
+## Compiling without superbuild
 * First, obtain VRPN:
 
 	> You can download it here:  http://www.cs.unc.edu/Research/vrpn/
