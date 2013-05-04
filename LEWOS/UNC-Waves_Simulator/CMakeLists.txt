@@ -1,6 +1,21 @@
 cmake_minimum_required(VERSION 2.6)
-project(MACRO)
+project( MACRO )
 
+option( MACRO_USE_SUPERBUILD
+  "Build ImageViewer and the projects it depends on via Superbuild.cmake" ON )
+mark_as_advanced( MACRO_USE_SUPERBUILD )
+
+if( MACRO_USE_SUPERBUILD )
+
+  include( "${CMAKE_CURRENT_SOURCE_DIR}/Superbuild.cmake" )
+  #return() # Add this in once I've integrated the UNC_Waves_simulator into
+	    # the superbuild. 
+
+else()
+
+endif()
+
+#include( "${CMAKE_CURRENT_SOURCE_DIR}/SuperBuild.cmake" )
 #-----------------------------------------------------------------------------
 # Local CMake Modules
 list(APPEND CMAKE_MODULE_PATH ${MACRO_SOURCE_DIR} ${MACRO_SOURCE_DIR}/cmake)

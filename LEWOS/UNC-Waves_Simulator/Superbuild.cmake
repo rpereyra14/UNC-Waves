@@ -1,0 +1,122 @@
+
+include( ExternalProject )
+
+set( base "${CMAKE_BINARY_DIR}" )
+set_property( DIRECTORY PROPERTY EP_BASE ${base} )
+
+if( DEFINED BUILD_SHARED_LIBS )
+  set( shared ${BUILD_SHARED_LIBS} )
+else( DEFINED BUILD_SHARED_LIBS )
+  set( shared ON ) # use for BUILD_SHARED_LIBS on all subsequent projects
+endif( DEFINED BUILD_SHARED_LIBS )
+set( testing OFF ) # use for BUILD_TESTING on all subsequent projects
+set( build_type "Debug" )
+if( CMAKE_BUILD_TYPE )
+  set( build_type "${CMAKE_BUILD_TYPE}" )
+endif( CMAKE_BUILD_TYPE )
+
+set( WaveSim_DEPENDS "" )
+
+set( gen "${CMAKE_GENERATOR}" )
+
+##
+## Find GIT and determine proper protocol for accessing GIT repos.
+##  - Users may need to choose HTTP is they are behind a firewall.
+##
+if( NOT GIT_EXECUTABLE )
+  find_package( Git REQUIRED )
+endif( NOT GIT_EXECUTABLE )
+
+option( GIT_PROTOCOL_HTTP
+  "Use HTTP for git access (useful if behind a firewall)" OFF )
+if( GIT_PROTOCOL_HTTP )
+  set( GIT_PROTOCOL "http" CACHE STRING "Git protocol for file transfer" )
+else( GIT_PROTOCOL_HTTP )
+  set( GIT_PROTOCOL "git" CACHE STRING "Git protocol for file transfer" )
+endif( GIT_PROTOCOL_HTTP )
+mark_as_advanced( GIT_PROTOCOL )
+
+#
+# Use for CMAKE_OSX_* in external projects.
+#
+set( CMAKE_OSX_EXTERNAL_PROJECT_ARGS )
+if( APPLE )
+  list( APPEND CMAKE_OSX_EXTERNAL_PROJECT_ARGS
+    -DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES}
+    -DCMAKE_OSX_SYSROOT=${CMAKE_OSX_SYSROOT}
+    -DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}
+  )
+endif( APPLE )
+
+
+ExternalProject_Add(
+   vrpn
+   GIT_REPOSITORY "${GIT_PROTOCOL}://git.cs.unc.edu/vrpn.git"
+   GIT_TAG "77c879ddcb299222746385ccd117f185ccb6cad0"
+   SOURCE_DIR "${CMAKE_BINARY_DIR}/vrpn"
+   BINARY_DIR "${CMAKE_BINARY_DIR}/vrpn-build"
+   #CMAKE_GENERATOR ${gen}
+   CMAKE_ARGS
+      -DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
+      -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
+      #-DCMAKE_C_FLAGS:STRING=${CMAKE_C_FLAGS}
+      #-DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}      
+      #-DBUILD_SHARED_LIBS:BOOL=${shared}#### IF YOU USE THIS, SPECIFY WHERE THE LIBS GO
+      -DQT_QMAKE_EXECUTABLE:PATH=${QT_QMAKE_EXECUTABLE}
+   INSTALL_COMMAND ""
+    )
+  set( VRPN_LIBRARY "${CMAKE_BINARY_DIR}/vrpn-build/libvrpn.a" )
+  set( VRPN_INCLUDE_DIR "${CMAKE_BINARY_DIR}/vrpn" )
+  set( QUATLIB_LIBRARY "${CMAKE_BINARY_DIR}/vrpn-build/quat/libquat.a" )
+  set( QUATLIB_INCLUDE_DIR "${CMAKE_BINARY_DIR}/vrpn/quat" )
+  set( WaveSim_DEPENDS ${WaveSim_DEPENDS} "vrpn" )
+  set(LEWOS_XLATE_DEPENDS "vrpn")
+  set(LEWOS_SIM_DEPENDS "LEWOS_XLATE")
+
+ExternalProject_Add(
+	LEWOS_XLATE
+	#GIT_REPOSITORY "ssh://crmullin@login.cs.unc.edu/afs/unc/proj/stm/src/git/LEWOS.git"
+	#GIT_TAG "ac06ec00e416b527eee755d5d7301925a4482269"
+	SOURCE_DIR "${LEWOS_ROOT_DIR}/LEWOS_xlate_lib"
+	BINARY_DIR "${CMAKE_BINARY_DIR}/LEWOS_xlate-build"
+	CMAKE_ARGS
+	  -DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
+	  -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
+	  -DVRPN_LIBRARY:PATH=${VRPN_LIBRARY}
+	  -DVRPN_INCLUDE_DIR:PATH=${VRPN_INCLUDE_DIR}
+	  -DQUATLIB_LIBRARY:PATH=${QUATLIB_LIBRARY}
+	  -DQUATLIB_INCLUDE_DIR:PATH=${QUATLIB_INCLUDE_DIR}
+	  #-DQUATLIB_ROOT_DIR:PATH=${QUATLIB_INCLUDE_DIR}
+    ${CMAKE_OSX_EXTERNAL_PROJECT_ARGS}
+	INSTALL_COMMAND ""
+	DEPENDS "vrpn"
+	)
+
+  set( LEWOS_INCLUDE_DIR "${LEWOS_ROOT_DIR}/LEWOS_xlate_lib")
+  set( LEWOS_xlate_LIBRARY "${base}/LEWOS_xlate-build/libLEWOS_xlate.a")
+  set( LEWOS_xmit_LIBRARY "${base}/LEWOS_xlate-build/libLEWOS_xmit.a")
+  set( LEWOS_api_LIBRARY "${base}/LEWOS_xlate-build/libLEWOS_api.a")
+
+ExternalProject_Add(
+	LEWOS_SIM
+	SOURCE_DIR "${LEWOS_ROOT_DIR}/LEWOS_sim_lib"
+	BINARY_DIR "${CMAKE_BINARY_DIR}/LEWOS_sim-build"
+	CMAKE_ARGS
+	  -DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
+	  -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
+	  -DVRPN_LIBRARY:PATH=${VRPN_LIBRARY}
+	  -DVRPN_INCLUDE_DIR:PATH=${VRPN_INCLUDE_DIR}
+	  -DQUATLIB_LIBRARY:PATH=${QUATLIB_LIBRARY}
+	  -DQUATLIB_INCLUDE_DIR:PATH=${QUATLIB_INCLUDE_DIR}
+      -DLEWOS_INCLUDE_DIR:PATH=${LEWOS_INCLUDE_DIR}
+	  -DLEWOS_xlate_LIBRARY:PATH=${LEWOS_xlate_LIBRARY}
+	  -DLEWOS_xmit_LIBRARY:PATH=${LEWOS_xmit_LIBRARY}
+	  -DLEWOS_api_LIBRARY:PATH=${LEWOS_api_LIBRARY}
+	INSTALL_COMMAND ""
+	DEPENDS "LEWOS_XLATE"
+	)
+	
+  set( LEWOSSIM_LIBRARY "${base}/LEWOS_sim-build/libLEWOS_sim.a")
+  set( LEWOSSIM_INCLUDE_DIR "${LEWOS_ROOT_DIR}/LEWOS_sim_lib")
+
+
